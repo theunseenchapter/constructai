@@ -1,0 +1,20 @@
+{
+  "rooms": [
+    {
+      "name": "Living Room",
+      "type": "living_room",
+      "area": 120
+    },
+    {
+      "name": "Kitchen",
+      "type": "kitchen",
+      "area": 60
+    }
+  ],
+  "building_dimensions": {
+    "total_width": 20,
+    "total_length": 15,
+    "height": 8
+  },
+  "quality": "high"
+}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API</title>
+</head>
+<body>
+    <h1>Test BOQ API</h1>
+    <button onclick="testAPI()">Test API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const config = {
+                tool: 'generate_3d_model',
+                arguments: {
+                    scene_type: 'architectural_visualization',
+                    quality: 'professional',
+                    rooms: [
+                        {
+                            name: 'test_living_room',
+                            type: 'living_room',
+                            width: 22,
+                            length: 18,
+                            height: 3,
+                            position: { x: 0, y: 0, z: 0 }
+                        }
+                    ],
+                    building_dimensions: {
+                        total_width: 22,
+                        total_length: 18,
+                        height: 3
+                    }
+                }
+            };
+
+            try {
+                const response = await fetch('/api/mcp/blender-bridge', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+
+                const data = await response.json();
+                document.getElementById('result').innerHTML = 
+                    `<h3>Result:</h3><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    `<h3>Error:</h3><pre>${error.message}</pre>`;
+            }
+        }
+    </script>
+</body>
+</html>

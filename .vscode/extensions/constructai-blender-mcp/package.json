@@ -1,0 +1,49 @@
+{
+  "name": "constructai-blender-mcp",
+  "displayName": "ConstructAI Blender MCP Extension",
+  "description": "MCP server integration for 3D architectural visualization with Blender",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "contributes": {
+    "configuration": {
+      "title": "ConstructAI Blender MCP",
+      "properties": {
+        "constructai.blender.mcpServer.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Blender MCP server integration"
+        },
+        "constructai.blender.mcpServer.path": {
+          "type": "string",
+          "default": "d:/constructai/backend/start_mcp_server.py",
+          "description": "Path to the Blender MCP server script"
+        },
+        "constructai.blender.path": {
+          "type": "string",
+          "default": "blender",
+          "description": "Path to Blender executable"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "constructai.startMcpServer",
+        "title": "Start Blender MCP Server"
+      },
+      {
+        "command": "constructai.stopMcpServer",
+        "title": "Stop Blender MCP Server"
+      },
+      {
+        "command": "constructai.testMcpConnection",
+        "title": "Test MCP Connection"
+      }
+    ]
+  },
+  "dependencies": {
+    "@types/vscode": "^1.85.0"
+  }
+}

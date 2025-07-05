@@ -1,0 +1,11 @@
+{
+  "rooms": [
+    {"name": "Living Room", "type": "living_room", "area": 120},
+    {"name": "Kitchen", "type": "kitchen", "area": 60},
+    {"name": "Bedroom", "type": "bedroom", "area": 90},
+    {"name": "Bathroom", "type": "bathroom", "area": 30}
+  ],
+  "building_dimensions": {"total_width": 25, "total_length": 15, "height": 8},
+  "quality": "ultra_high",
+  "style": "modern_architecture"
+}
