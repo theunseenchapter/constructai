@@ -1,12 +1,10 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.security import HTTPBearer
 from contextlib import asynccontextmanager
 
 from core.config import settings
-from core.database import engine, Base
-from core.storage import init_minio
 from api.v1 import api_router
 
 
@@ -16,19 +14,27 @@ async def lifespan(app: FastAPI):
     # Startup
     print("🚀 Starting ConstructAI Backend...")
     
+    # Initialize CUDA optimizations
+    try:
+        from cuda_performance_optimizer import cuda_optimizer
+        cuda_optimizer.apply_cuda_optimizations()
+        print("⚡ CUDA 12.1 optimizations applied successfully!")
+    except ImportError:
+        print("⚠️ CUDA optimizations not available - using CPU mode")
+    
     # Skip database initialization for now (development mode)
     # async with engine.begin() as conn:
     #     await conn.run_sync(Base.metadata.create_all)
     print("⚠️ Database initialization skipped (development mode)")
-    
+
     # Skip MinIO initialization for now (development mode)
     # init_minio()
     print("⚠️ MinIO initialization skipped (development mode)")
-    
+
     print("🎉 ConstructAI Backend is ready!")
-    
+
     yield
-    
+
     # Shutdown
     print("👋 Shutting down ConstructAI Backend...")
 
@@ -64,6 +70,7 @@ app.add_middleware(
 # Include API routes
 app.include_router(api_router, prefix="/api/v1")
 
+
 # Health check
 @app.get("/health")
 async def health_check():
@@ -74,6 +81,7 @@ async def health_check():
         "version": settings.version,
         "timestamp": "2025-01-01T00:00:00Z"
     }
+
 
 @app.get("/")
 async def root():

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Realistic Home 3D Showcase</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            overflow: hidden;
+        }
+        
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            max-width: 300px;
+        }
+        
+        #info h1 {
+            margin: 0 0 10px 0;
+            font-size: 20px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        #info p {
+            margin: 5px 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(15px);
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #4ecdc4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .feature-tag {
+            display: inline-block;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            margin: 2px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="loading">
+            <div class="spinner"></div>
+            <h2>Loading Advanced Realistic Home Model...</h2>
+            <p>Initializing detailed room geometry, realistic materials, and lighting</p>
+        </div>
+        
+        <div id="info">
+            <h1>🏠 Advanced Realistic Home</h1>
+            <p><strong>Model:</strong> advanced_realistic_home.obj</p>
+            <p><strong>Status:</strong> <span id="status">Loading...</span></p>
+            <p><strong>Features:</strong></p>
+            <div>
+                <span class="feature-tag">Detailed Walls</span>
+                <span class="feature-tag">Realistic Furniture</span>
+                <span class="feature-tag">Room Separation</span>
+                <span class="feature-tag">Materials</span>
+                <span class="feature-tag">Lighting</span>
+            </div>
+            <p id="stats"></p>
+        </div>
+        
+        <div id="controls">
+            <button class="control-btn" onclick="resetView()">🏠 Reset View</button>
+            <button class="control-btn" onclick="toggleWireframe()">🔲 Wireframe</button>
+            <button class="control-btn" onclick="toggleLighting()">💡 Lighting</button>
+            <button class="control-btn" onclick="downloadModel()">📥 Download</button>
+        </div>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/MTLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // Global variables
+        let scene, camera, renderer, controls, model;
+        let wireframeMode = false;
+        let lightingEnabled = true;
+        
+        // Initialize the 3D scene
+        function init() {
+            const container = document.getElementById('container');
+            
+            // Create scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x2c3e50);
+            
+            // Create camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(10, 8, 10);
+            
+            // Create renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+            
+            // Add controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxDistance = 50;
+            controls.minDistance = 2;
+            
+            // Add lighting
+            setupLighting();
+            
+            // Load the model
+            loadModel();
+            
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize);
+            
+            // Start render loop
+            animate();
+        }
+        
+        function setupLighting() {
+            // Ambient light
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            scene.add(ambientLight);
+            
+            // Main directional light
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(10, 10, 5);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+            
+            // Fill light
+            const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
+            fillLight.position.set(-10, 5, -5);
+            scene.add(fillLight);
+            
+            // Point light for interior
+            const pointLight = new THREE.PointLight(0xffffff, 0.5, 20);
+            pointLight.position.set(0, 5, 0);
+            scene.add(pointLight);
+        }
+        
+        function loadModel() {
+            const mtlLoader = new THREE.MTLLoader();
+            mtlLoader.load('/renders/advanced_realistic_home.mtl', function(materials) {
+                materials.preload();
+                
+                const objLoader = new THREE.OBJLoader();
+                objLoader.setMaterials(materials);
+                objLoader.load('/renders/advanced_realistic_home.obj', function(object) {
+                    model = object;
+                    
+                    // Apply enhanced materials
+                    enhanceMaterials(object);
+                    
+                    // Center and scale the model
+                    const box = new THREE.Box3().setFromObject(object);
+                    const center = box.getCenter(new THREE.Vector3());
+                    const size = box.getSize(new THREE.Vector3());
+                    
+                    object.position.sub(center);
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = 8 / maxDim;
+                    object.scale.setScalar(scale);
+                    
+                    scene.add(object);
+                    
+                    // Update UI
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('status').textContent = 'Loaded Successfully';
+                    document.getElementById('stats').innerHTML = `
+                        <strong>Objects:</strong> ${countObjects(object)}<br>
+                        <strong>Size:</strong> ${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)}
+                    `;
+                    
+                    console.log('Advanced realistic home model loaded successfully!');
+                }, undefined, function(error) {
+                    console.error('Error loading OBJ:', error);
+                    document.getElementById('status').textContent = 'Error Loading Model';
+                });
+            }, undefined, function(error) {
+                console.error('Error loading MTL:', error);
+                // Try to load OBJ without materials
+                loadOBJOnly();
+            });
+        }
+        
+        function loadOBJOnly() {
+            const objLoader = new THREE.OBJLoader();
+            objLoader.load('/renders/advanced_realistic_home.obj', function(object) {
+                model = object;
+                
+                // Apply default materials
+                applyDefaultMaterials(object);
+                
+                // Center and scale the model
+                const box = new THREE.Box3().setFromObject(object);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                
+                object.position.sub(center);
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const scale = 8 / maxDim;
+                object.scale.setScalar(scale);
+                
+                scene.add(object);
+                
+                // Update UI
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('status').textContent = 'Loaded (No Materials)';
+                document.getElementById('stats').innerHTML = `
+                    <strong>Objects:</strong> ${countObjects(object)}<br>
+                    <strong>Size:</strong> ${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)}
+                `;
+                
+                console.log('Model loaded without materials');
+            }, undefined, function(error) {
+                console.error('Error loading model:', error);
+                document.getElementById('status').textContent = 'Failed to Load';
+            });
+        }
+        
+        function enhanceMaterials(object) {
+            object.traverse(function(child) {
+                if (child.isMesh) {
+                    // Enhanced material properties
+                    if (child.material) {
+                        child.material.roughness = 0.7;
+                        child.material.metalness = 0.1;
+                        child.material.transparent = false;
+                        child.material.side = THREE.DoubleSide;
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                    }
+                }
+            });
+        }
+        
+        function applyDefaultMaterials(object) {
+            const materials = {
+                floor: new THREE.MeshLambertMaterial({ color: 0x8B4513 }), // Brown
+                wall: new THREE.MeshLambertMaterial({ color: 0xF5F5DC }), // Beige
+                ceiling: new THREE.MeshLambertMaterial({ color: 0xFFFFFF }), // White
+                furniture: new THREE.MeshLambertMaterial({ color: 0x654321 }), // Dark brown
+                default: new THREE.MeshLambertMaterial({ color: 0x888888 }) // Gray
+            };
+            
+            object.traverse(function(child) {
+                if (child.isMesh) {
+                    const name = child.name.toLowerCase();
+                    if (name.includes('floor')) {
+                        child.material = materials.floor;
+                    } else if (name.includes('wall')) {
+                        child.material = materials.wall;
+                    } else if (name.includes('ceiling')) {
+                        child.material = materials.ceiling;
+                    } else if (name.includes('furniture') || name.includes('bed') || name.includes('table') || name.includes('chair')) {
+                        child.material = materials.furniture;
+                    } else {
+                        child.material = materials.default;
+                    }
+                    
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+        }
+        
+        function countObjects(object) {
+            let count = 0;
+            object.traverse(function(child) {
+                if (child.isMesh) count++;
+            });
+            return count;
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        function resetView() {
+            camera.position.set(10, 8, 10);
+            controls.reset();
+        }
+        
+        function toggleWireframe() {
+            wireframeMode = !wireframeMode;
+            if (model) {
+                model.traverse(function(child) {
+                    if (child.isMesh && child.material) {
+                        child.material.wireframe = wireframeMode;
+                    }
+                });
+            }
+        }
+        
+        function toggleLighting() {
+            lightingEnabled = !lightingEnabled;
+            scene.traverse(function(child) {
+                if (child.isLight && child.type !== 'AmbientLight') {
+                    child.visible = lightingEnabled;
+                }
+            });
+        }
+        
+        function downloadModel() {
+            const a = document.createElement('a');
+            a.href = '/renders/advanced_realistic_home.obj';
+            a.download = 'advanced_realistic_home.obj';
+            a.click();
+        }
+        
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

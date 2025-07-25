@@ -1,0 +1,119 @@
+{
+  "session_id": "nerf_1752416178126_ovst7w7xj",
+  "input_images": [
+    "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+  ],
+  "room_type": "multi_room",
+  "scene_bounds": {
+    "height": 3
+  },
+  "camera_setup": [
+    {
+      "x": null,
+      "y": 1.7999999999999998,
+      "z": null,
+      "rotation": {
+        "x": -10,
+        "y": 180,
+        "z": 0
+      }
+    },
+    {
+      "x": null,
+      "y": 1.7999999999999998,
+      "z": null,
+      "rotation": {
+        "x": -10,
+        "y": 225,
+        "z": 0
+      }
+    },
+    {
+      "x": null,
+      "y": 1.7999999999999998,
+      "z": null,
+      "rotation": {
+        "x": -10,
+        "y": 270,
+        "z": 0
+      }
+    },
+    {
+      "x": null,
+      "y": 1.7999999999999998,
+      "z": null,
+      "rotation": {
+        "x": -10,
+        "y": 315,
+        "z": 0
+      }
+    },
+    {
+      "x": null,
+      "y": 1.7999999999999998,
+      "z": null,
+      "rotation": {
+        "x": -10,
+        "y": 360,
+        "z": 0
+      }
+    },
+    {
+      "x": null,
+      "y": 1.7999999999999998,
+      "z": null,
+      "rotation": {
+        "x": -10,
+        "y": 405,
+        "z": 0
+      }
+    },
+    {
+      "x": null,
+      "y": 1.7999999999999998,
+      "z": null,
+      "rotation": {
+        "x": -10,
+        "y": 450,
+        "z": 0
+      }
+    },
+    {
+      "x": null,
+      "y": 1.7999999999999998,
+      "z": null,
+      "rotation": {
+        "x": -10,
+        "y": 495,
+        "z": 0
+      }
+    },
+    {
+      "x": 0,
+      "y": 4.5,
+      "z": 0,
+      "rotation": {
+        "x": -90,
+        "y": 0,
+        "z": 0
+      }
+    }
+  ],
+  "training_params": {
+    "max_iterations": 20000,
+    "learning_rate": 0.0005,
+    "batch_size": 1024,
+    "use_hierarchical_sampling": true,
+    "positional_encoding_levels": 10,
+    "view_direction_encoding_levels": 4
+  },
+  "rendering_params": {
+    "output_resolution": [
+      1920,
+      1080
+    ],
+    "texture_resolution": 1024,
+    "samples_per_ray": 64,
+    "novel_view_count": 8
+  }
+}

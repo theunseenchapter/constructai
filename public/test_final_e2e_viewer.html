@@ -1,0 +1,118 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Final E2E Test - 3D Model Viewer</title>
+        <style>
+            body { margin: 0; font-family: Arial, sans-serif; }
+            #info { position: absolute; top: 10px; left: 10px; color: white; background: rgba(0,0,0,0.7); padding: 10px; }
+            #viewer { width: 100%; height: 100vh; }
+        </style>
+    </head>
+    <body>
+        <div id="info">
+            <h3>Final E2E Test - 3D Model Viewer</h3>
+            <p>Model: improved_floor_plan_final_e2e_test.obj</p>
+            <p>Status: <span id="status">Loading...</span></p>
+        </div>
+        <div id="viewer"></div>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/MTLLoader.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+        
+        <script>
+            let scene, camera, renderer, controls;
+            
+            function init() {
+                // Scene setup
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x333333);
+                
+                // Camera setup
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.set(10, 10, 10);
+                
+                // Renderer setup
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                document.getElementById('viewer').appendChild(renderer.domElement);
+                
+                // Controls
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+                scene.add(ambientLight);
+                
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+                directionalLight.position.set(10, 10, 5);
+                directionalLight.castShadow = true;
+                scene.add(directionalLight);
+                
+                // Load model
+                loadModel();
+            }
+            
+            function loadModel() {
+                const mtlLoader = new THREE.MTLLoader();
+                mtlLoader.load('/renders/improved_floor_plan_final_e2e_test.mtl', function(materials) {
+                    materials.preload();
+                    
+                    const objLoader = new THREE.OBJLoader();
+                    objLoader.setMaterials(materials);
+                    objLoader.load('/renders/improved_floor_plan_final_e2e_test.obj', function(object) {
+                        scene.add(object);
+                        
+                        // Center the model
+                        const box = new THREE.Box3().setFromObject(object);
+                        const center = box.getCenter(new THREE.Vector3());
+                        object.position.sub(center);
+                        
+                        // Update status
+                        document.getElementById('status').textContent = 'Model loaded successfully!';
+                        document.getElementById('status').style.color = '#4CAF50';
+                        
+                        console.log('Model loaded successfully:', object);
+                        
+                    }, function(progress) {
+                        console.log('Loading progress:', progress);
+                    }, function(error) {
+                        console.error('Error loading OBJ:', error);
+                        document.getElementById('status').textContent = 'Error loading model';
+                        document.getElementById('status').style.color = '#f44336';
+                    });
+                    
+                }, function(progress) {
+                    console.log('Loading MTL progress:', progress);
+                }, function(error) {
+                    console.error('Error loading MTL:', error);
+                    document.getElementById('status').textContent = 'Error loading materials';
+                    document.getElementById('status').style.color = '#f44336';
+                });
+            }
+            
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            
+            // Window resize handler
+            window.addEventListener('resize', function() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+            
+            // Initialize
+            init();
+            animate();
+        </script>
+    </body>
+    </html>
+    

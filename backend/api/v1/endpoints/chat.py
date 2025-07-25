@@ -176,7 +176,7 @@ def get_fallback_response(user_message: str, language: str = "en") -> str:
 async def ask_chatbot(chat_message: ChatMessage):
     """Ask the multilingual AI chatbot about construction topics"""
     
-    global chatbot_pipeline, model_loaded
+    global model_loaded
     
     try:
         # Initialize model if not already loaded

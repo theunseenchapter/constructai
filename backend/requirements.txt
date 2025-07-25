@@ -19,13 +19,20 @@ pandas==2.1.4
 numpy==1.24.4
 pillow==10.1.0
 opencv-python==4.8.1.78
-# PyTorch with CUDA 12.1 support
-torch==2.1.2+cu121
-torchvision==0.16.2+cu121
-torchaudio==2.1.2+cu121
+# PyTorch with CUDA 12.1 support (optimized for your setup)
+torch==2.1.2+cu121 --index-url https://download.pytorch.org/whl/cu121
+torchvision==0.16.2+cu121 --index-url https://download.pytorch.org/whl/cu121
+torchaudio==2.1.2+cu121 --index-url https://download.pytorch.org/whl/cu121
+# CUDA-accelerated computer vision
+cupy-cuda12x==12.3.0
+# GPU-accelerated ML libraries
 transformers==4.36.0
 diffusers==0.24.0
 accelerate==0.25.0
+# CUDA-optimized NeRF dependencies
+tinycudann==1.7
+# Blender Python API with GPU support
+bpy==4.0.0
 whisper-openai==1.1.10
 reportlab==4.0.7
 openpyxl==3.1.2

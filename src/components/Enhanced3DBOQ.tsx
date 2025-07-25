@@ -1,16 +1,39 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Building2, Calculator, Eye, Download, Layers3, Zap } from "lucide-react"
-import BlenderRoomViewer from "./BlenderRoomViewer"
+import { Progress } from "@/components/ui/progress"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import ThreeJSViewer from "./ThreeJSViewer"
+import NeRFViewer from "./NeRFViewer"
+import { 
+  Building2, 
+  Calculator, 
+  Download, 
+  Layers3, 
+  Zap, 
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  Sparkles,
+  Palette,
+  Home,
+  TreePine,
+  Sofa,
+  Monitor,
+  Star,
+  Wand2
+} from "lucide-react"
+
+// Interface definitions
 interface Enhanced3DProjectSpecs {
-  // Basic specs
   total_area: number
   num_bedrooms: number
   num_living_rooms: number
@@ -20,47 +43,27 @@ interface Enhanced3DProjectSpecs {
   construction_type: string
   quality_grade: string
   location: string
-  
-  // 3D Room specifications
   room_height: number
   wall_thickness: number
-  
-  // Doors and Windows per room type
   doors_per_bedroom: number
   doors_per_living_room: number
   doors_per_kitchen: number
   doors_per_bathroom: number
-  doors_per_dining_room: number
-  doors_per_study_room: number
-  doors_per_guest_room: number
-  doors_per_utility_room: number
-  doors_per_store_room: number
   windows_per_bedroom: number
   windows_per_living_room: number
   windows_per_kitchen: number
   windows_per_bathroom: number
-  windows_per_dining_room: number
-  windows_per_study_room: number
-  windows_per_guest_room: number
-  windows_per_utility_room: number
-  windows_per_store_room: number
   main_door_type: string
   interior_door_type: string
   window_type: string
-  
-  // Room layout preferences
   room_layout: string
   include_balcony: boolean
   balcony_area: number
-  
-  // Additional room types
   num_dining_rooms: number
   num_study_rooms: number
   num_utility_rooms: number
   num_guest_rooms: number
   num_store_rooms: number
-  
-  // Additional features
   ceiling_type: string
   flooring_type: string
 }
@@ -74,114 +77,92 @@ interface VisualizationData {
     area: number
     room_type?: string
     position?: { x: number; y: number }
-    doors?: Array<{
-      type: string
-      width: number
-      height: number
-      position: { wall: string; offset: number }
-    }>
-    windows?: Array<{
-      type: string
-      width: number
-      height: number
-      position: { wall: string; offset: number }
-    }>
   }>
-  building_dimensions: {
-    total_width: number
-    total_length: number
-    height: number
+  total_area: number
+  estimated_cost: number
+  blender_files?: {
+    scene_id: string
+    obj_file: string
+    mtl_file: string
+    blend_file: string
+    renders: string[]
   }
-  total_doors: number
-  total_windows: number
 }
 
-interface BOQ3DResponse {
-  boq_id: string
-  project_specs: Enhanced3DProjectSpecs
+interface BOQResult {
   total_cost: number
-  material_cost: number
-  labor_cost: number
   items: Array<{
-    category: string
     item: string
     quantity: number
     unit: string
     rate: number
     amount: number
   }>
-  cost_breakdown: {
-    material_cost: number
-    labor_cost: number
-    overhead_cost: number
-    total_cost: number
-    cost_per_sqft: number
-  }
-  room_3d_data: {
-    room_layout: Record<string, unknown>
-    material_quantities: Record<string, number>
+  room_3d_data?: {
     visualization_data: VisualizationData
   }
-  model_file_path: string
-  created_at: string
-  // Professional 3D enhancement
   professional_3d?: {
     scene_id: string
     quality: string
     renderer: string
     samples: number
     resolution: string
-    blender_files: {
-      scene_id: string
-      obj_file: string
-      mtl_file: string
+    status?: string
+    obj_url?: string
+    mtl_url?: string
+    blend_url?: string
+    preview_url?: string
+    blender_files?: {
+      obj: string
+      mtl: string
       blend_file: string
       renders: string[]
-      file_paths: {
-        obj: string
-        mtl: string
-        blend: string
-        renders: string[]
-      }
+    }
+  }
+  nerf_3d?: {
+    nerf_id: string
+    model_files: {
+      obj_file?: string
+      ply_file?: string
+      gltf_file?: string
+      texture_files: string[]
+      novel_views: string[]
+    }
+    metadata: {
+      training_time: number
+      iteration_count: number
+      reconstruction_quality: number
+      scene_bounds: { min: [number, number, number]; max: [number, number, number] }
     }
   }
 }
 
 export default function Enhanced3DBOQ() {
+  // State management
   const [specs, setSpecs] = useState<Enhanced3DProjectSpecs>({
-    total_area: 1000,
-    num_bedrooms: 2,
-    num_living_rooms: 1,
-    num_kitchens: 1,
-    num_bathrooms: 2,
+    total_area: 0,
+    num_bedrooms: 0,
+    num_living_rooms: 0,
+    num_kitchens: 0,
+    num_bathrooms: 0,
     num_floors: 1,
-    construction_type: 'residential',
-    quality_grade: 'standard',
-    location: 'urban',
-    room_height: 10,
-    wall_thickness: 0.5,
-    doors_per_bedroom: 1,
-    doors_per_living_room: 1,
-    doors_per_kitchen: 1,
-    doors_per_bathroom: 1,
-    doors_per_dining_room: 1,
-    doors_per_study_room: 1,
-    doors_per_guest_room: 1,
-    doors_per_utility_room: 1,
-    doors_per_store_room: 1,
-    windows_per_bedroom: 2,
-    windows_per_living_room: 3,
-    windows_per_kitchen: 1,
-    windows_per_bathroom: 1,
-    windows_per_dining_room: 2,
-    windows_per_study_room: 2,
-    windows_per_guest_room: 2,
-    windows_per_utility_room: 1,
-    windows_per_store_room: 0,
-    main_door_type: 'premium',
-    interior_door_type: 'standard',
-    window_type: 'standard',
-    room_layout: 'rectangular',
+    construction_type: '',
+    quality_grade: '',
+    location: '',
+    room_height: 0,
+    wall_thickness: 0,
+    doors_per_bedroom: 0,
+    doors_per_living_room: 0,
+    doors_per_kitchen: 0,
+    doors_per_bathroom: 0,
+    windows_per_bedroom: 0,
+    windows_per_living_room: 0,
+    windows_per_kitchen: 0,
+    windows_per_bathroom: 0,
+    main_door_type: '',
+    interior_door_type: '',
+    window_type: '',
+    room_layout: '',
     include_balcony: false,
     balcony_area: 0,
     num_dining_rooms: 0,
@@ -189,1340 +170,1264 @@ export default function Enhanced3DBOQ() {
     num_utility_rooms: 0,
     num_guest_rooms: 0,
     num_store_rooms: 0,
-    ceiling_type: 'false',
-    flooring_type: 'tiles'
+    ceiling_type: '',
+    flooring_type: ''
   })
 
-  const [loading, setLoading] = useState(false)
-  const [blenderProcessing, setBlenderProcessing] = useState(false)
-  const [isGeneratingDirect, setIsGeneratingDirect] = useState(false)
-  const [result, setResult] = useState<BOQ3DResponse | null>(null)
-  const [showViewer, setShowViewer] = useState(false)
+  // Enhanced 3D Features State
+  const [enhancedFeatures, setEnhancedFeatures] = useState({
+    furniture: true,
+    landscaping: true,
+    premiumMaterials: true,
+    interiorDetails: true,
+    lighting: true,
+    textures: true
+  })
 
-  const updateSpec = (key: keyof Enhanced3DProjectSpecs, value: string | number | boolean) => {
-    setSpecs(prev => ({ ...prev, [key]: value }))
+  const [architecturalStyle, setArchitecturalStyle] = useState('modern')
+  const [qualityLevel, setQualityLevel] = useState('professional')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [showAlert, setShowAlert] = useState(false)
+  const [alertMessage, setAlertMessage] = useState('')
+  const [alertType, setAlertType] = useState<'success' | 'error'>('success')
+  const [currentStep, setCurrentStep] = useState('initializing')
+  const [result, setResult] = useState<BOQResult | null>(null)
+  const [blenderProcessing, setBlenderProcessing] = useState(false)
+  const [activeTab, setActiveTab] = useState('generator')
+
+  // Test with a recent generated model
+  useEffect(() => {
+    // For testing, set a dummy result with a recent model
+    // Test data (commented out)
+    /*
+    const testResult = {
+      total_cost: 240000,
+      items: [
+        { item: 'Cement', quantity: 24, unit: 'bags', rate: 400, amount: 9600 },
+        { item: 'Steel', quantity: 60, unit: 'kg', rate: 60, amount: 3600 },
+      ],
+      professional_3d: {
+        scene_id: 'architectural_detailed_1752083732496',
+        quality: 'professional',
+        renderer: 'blender_cycles',
+        samples: 512,
+        resolution: '3840x2160',
+        obj_url: '/renders/architectural_detailed_1752083732496.obj',
+        mtl_url: '/renders/architectural_detailed_1752083732496.mtl',
+        blender_files: {
+          obj: 'renders/architectural_detailed_1752083732496.obj',
+          mtl: 'renders/architectural_detailed_1752083732496.mtl',
+          blend_file: 'renders/architectural_detailed_1752083732496.blend',
+          renders: ['renders/architectural_detailed_1752083732496.png']
+        }
+      }
+    }
+    
+    // Uncomment next line to test with real data
+    // setResult(testResult)
+    */
+  }, [])
+
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    setAlertMessage(message)
+    setAlertType(type)
+    setShowAlert(true)
+    setTimeout(() => setShowAlert(false), 5000)
   }
 
-  const handleCalculate = async () => {
-    setLoading(true)
+  const generateRandomVariations = () => {
+    // Add random variations to prevent identical layouts
+    const variations = {
+      colorScheme: ['warm', 'cool', 'neutral', 'vibrant'][Math.floor(Math.random() * 4)],
+      furnitureStyle: ['modern', 'classic', 'minimalist', 'eclectic'][Math.floor(Math.random() * 4)],
+      lightingVariation: Math.random() > 0.5 ? 'bright' : 'ambient',
+      materialTexture: Math.random() > 0.5 ? 'smooth' : 'textured',
+      roomArrangement: Math.random() > 0.5 ? 'symmetrical' : 'asymmetrical'
+    }
+    return variations
+  }
+
+  const generateModel = async () => {
+    // Validate required fields
+    if (!specs.total_area || specs.total_area <= 0) {
+      showNotification('Please enter a valid total area', 'error')
+      return
+    }
+    
+    if (!specs.construction_type) {
+      showNotification('Please select a construction type', 'error')
+      return
+    }
+    
+    if (!specs.quality_grade) {
+      showNotification('Please select a quality grade', 'error')
+      return
+    }
+    
+    if (!specs.room_layout) {
+      showNotification('Please select a room layout', 'error')
+      return
+    }
+    
+    const totalRooms = (specs.num_bedrooms || 0) + (specs.num_living_rooms || 0) + 
+                      (specs.num_kitchens || 0) + (specs.num_bathrooms || 0)
+    
+    if (totalRooms === 0) {
+      showNotification('Please add at least one room (bedroom, living room, kitchen, or bathroom)', 'error')
+      return
+    }
+    
+    setIsGenerating(true)
+    setProgress(0)
+    setCurrentStep('initializing')
+    
     try {
-      // Step 1: Generate BOQ data from backend
+      // Step 1: Initialize
+      setProgress(10)
+      setCurrentStep('Initializing professional 3D generation...')
       console.log('🏗️ Generating BOQ with professional 3D visualization...')
+      
+      // Generate random variations for unique designs
+      const variations = generateRandomVariations()
+      console.log('🎨 Design variations:', variations)
+      
+      // Step 2: Generate BOQ data from backend
+      setProgress(20)
+      setCurrentStep('Analyzing room specifications...')
       const boqResponse = await fetch('/api/boq/estimate-3d', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(specs),
+        body: JSON.stringify({
+          ...specs,
+          architectural_style: architecturalStyle,
+          quality_level: qualityLevel,
+          enhanced_features: enhancedFeatures
+        }),
       })
 
       if (!boqResponse.ok) {
         throw new Error(`BOQ API error! status: ${boqResponse.status}`)
       }
 
-      const boqData: BOQ3DResponse = await boqResponse.json()
+      const boqData: BOQResult = await boqResponse.json()
       console.log('💰 BOQ Data received:', boqData)
+      console.log('🔍 Professional 3D data:', boqData.professional_3d)
+      console.log('🔍 Blender files:', boqData.professional_3d?.blender_files)
       
-      // Step 2: Generate professional 3D visualization using advanced Blender renderer
-      if (boqData.room_3d_data?.visualization_data) {
-        setBlenderProcessing(true)
-        console.log('🎨 Creating professional Blender 3D visualization...')
+      // Check if professional_3d data is already included in BOQ response
+      if (boqData.professional_3d && boqData.professional_3d.blender_files) {
+        console.log('✅ Professional 3D data already included in BOQ response')
+        console.log('🔍 Full professional_3d object:', JSON.stringify(boqData.professional_3d, null, 2))
+        console.log('🔍 Blender files object:', JSON.stringify(boqData.professional_3d.blender_files, null, 2))
+        setProgress(100)
+        setCurrentStep('Generation complete!')
+        setResult(boqData)
+        console.log('🔍 Result state set to:', JSON.stringify(boqData, null, 2))
+        showNotification('3D model generated successfully!', 'success')
         
-        // Transform BOQ room data into professional scene config
+        // Auto-switch to Results tab
+        setTimeout(() => {
+          setActiveTab('results')
+        }, 1000)
+        return
+      }
+      
+      // Step 3: Generate professional 3D visualization using advanced Blender renderer
+      if (boqData.room_3d_data?.visualization_data?.rooms) {
+        setBlenderProcessing(true)
+        setProgress(30)
+        setCurrentStep('Generating intelligent layout...')
+        
+        // Calculate building dimensions from room data
+        const rooms = boqData.room_3d_data.visualization_data.rooms
+        const maxX = Math.max(...rooms.map((r) => (r.position?.x || 0) + r.width))
+        const maxZ = Math.max(...rooms.map((r) => (r.position?.y || 0) + r.length))
+        const maxHeight = Math.max(...rooms.map((r) => r.height))
+        
+        const buildingDimensions = {
+          total_width: Math.max(maxX, 30),
+          total_length: Math.max(maxZ, 30),
+          height: maxHeight + 2
+        }
+        
         const professionalSceneConfig = {
-          scene_type: "architectural_visualization",
-          quality: "professional",
-          detail_level: "ultra_high",
-          style: "modern_luxury",
-          render_quality: "production",
-          rooms: boqData.room_3d_data.visualization_data.rooms.map((room: VisualizationData['rooms'][0]) => ({
+          rooms: rooms.map((room) => ({
             name: room.name,
-            type: room.room_type || room.name.toLowerCase().includes('living') ? 'living_room' : 
-                  room.name.toLowerCase().includes('bedroom') ? 'bedroom' :
-                  room.name.toLowerCase().includes('kitchen') ? 'kitchen' :
-                  room.name.toLowerCase().includes('bathroom') ? 'bathroom' : 'bedroom',
+            type: room.room_type || 'bedroom',
             width: room.width,
-            length: room.length, 
+            length: room.length,
             height: room.height,
-            position: room.position || { x: 0, y: 0, z: 0 },
-            style: "modern_contemporary",
-            materials: {
-              floor: specs.flooring_type || "premium_hardwood",
-              walls: "luxury_paint",
-              ceiling: specs.ceiling_type || "modern_false_ceiling"
+            area: room.width * room.length,
+            // Add detailed room specifications
+            features: {
+              furniture: enhancedFeatures.furniture,
+              lighting: enhancedFeatures.lighting,
+              flooring: specs.flooring_type || 'tiles',
+              walls: specs.construction_type || 'RCC',
+              ceiling: specs.ceiling_type || 'false_ceiling',
+              doors: room.room_type === 'bedroom' ? specs.doors_per_bedroom : 
+                     room.room_type === 'living_room' ? specs.doors_per_living_room :
+                     room.room_type === 'kitchen' ? specs.doors_per_kitchen :
+                     room.room_type === 'bathroom' ? specs.doors_per_bathroom : 1,
+              windows: room.room_type === 'bedroom' ? specs.windows_per_bedroom : 
+                       room.room_type === 'living_room' ? specs.windows_per_living_room :
+                       room.room_type === 'kitchen' ? specs.windows_per_kitchen :
+                       room.room_type === 'bathroom' ? specs.windows_per_bathroom : 1,
+              door_type: room.room_type === 'bedroom' || room.room_type === 'living_room' ? 
+                        specs.interior_door_type : specs.main_door_type,
+              window_type: specs.window_type
             },
-            furniture_quality: "luxury",
-            lighting_setup: "professional"
+            // Add materials and colors based on quality and style
+            materials: {
+              quality: qualityLevel,
+              style: architecturalStyle,
+              premium_materials: enhancedFeatures.premiumMaterials,
+              textures: enhancedFeatures.textures
+            }
           })),
-          building_dimensions: boqData.room_3d_data.visualization_data.building_dimensions,
-          lighting: {
-            type: "cinematic",
-            golden_hour: true,
-            ambient_intensity: 0.8,
-            key_light_strength: 3.0
+          building_dimensions: buildingDimensions,
+          architectural_style: architecturalStyle,
+          quality_level: qualityLevel,
+          room_layout: specs.room_layout,
+          construction_specifications: {
+            construction_type: specs.construction_type,
+            quality_grade: specs.quality_grade,
+            wall_thickness: specs.wall_thickness,
+            room_height: specs.room_height,
+            flooring_type: specs.flooring_type,
+            ceiling_type: specs.ceiling_type,
+            main_door_type: specs.main_door_type,
+            interior_door_type: specs.interior_door_type,
+            window_type: specs.window_type,
+            location: specs.location
           },
-          materials: {
-            quality: "pbr_advanced",
-            detail_level: "ultra_high",
-            textures: "4k"
+          enhanced_features: enhancedFeatures,
+          interior_design: {
+            furniture_style: variations.furnitureStyle,
+            color_scheme: variations.colorScheme,
+            lighting_variation: variations.lightingVariation,
+            material_texture: variations.materialTexture,
+            room_arrangement: variations.roomArrangement,
+            include_details: enhancedFeatures.interiorDetails,
+            landscaping: enhancedFeatures.landscaping
+          },
+          lighting: {
+            ambient_intensity: 0.3,
+            sun_strength: 5.0,
+            area_lights: [
+              { position: [10, -10, 20], power: 200 },
+              { position: [-10, 10, 15], power: 100 }
+            ]
           },
           camera: {
-            type: "architectural", 
             lens: 35,
-            dof: true,
-            fstop: 5.6
+            dof_enabled: true,
+            fstop: 2.8
           },
           render_settings: {
-            samples: 256,
+            samples: 512,
             resolution: [2560, 1440],
             denoising: true,
             output_format: "png"
           }
         }
         
-        // Call the professional Blender MCP bridge for complete 3D model generation
-        console.log('🎨 Starting fresh 3D model generation...')
+        // Call the professional Blender MCP bridge
+        setProgress(50)
+        setCurrentStep('Generating professional 3D model...')
         const blenderResponse = await fetch('/api/mcp/blender-bridge', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache',
           },
           body: JSON.stringify({
             tool: 'generate_3d_model',
-            arguments: {
-              ...professionalSceneConfig,
-              force_fresh: true,
-              timestamp: Date.now()
-            }
+            arguments: professionalSceneConfig
           })
         })
         
         if (blenderResponse.ok) {
           const blenderResult = await blenderResponse.json()
-          console.log('🎨 Professional Blender result:', blenderResult)
-          console.log('🔍 Frontend received structure:', JSON.stringify(blenderResult, null, 2))
+          console.log('🎨 Blender result:', blenderResult)
           
           if (blenderResult.success) {
-            // Enhance the BOQ result with professional 3D data
-            boqData.professional_3d = {
-              scene_id: blenderResult.result?.scene_id,
-              quality: "professional",
-              renderer: "blender_cycles",
-              samples: 512,
-              resolution: "3840x2160",
-              blender_files: blenderResult.result
+            setProgress(90)
+            setCurrentStep('Finalizing 3D model...')
+            
+            // Update the result with 3D data
+            const newResult = {
+              ...boqData,
+              professional_3d: {
+                scene_id: blenderResult.data?.scene_id,
+                quality: "professional",
+                renderer: "blender_cycles",
+                samples: 512,
+                resolution: "3840x2160",
+                obj_url: blenderResult.data?.files?.obj,
+                mtl_url: blenderResult.data?.files?.mtl,
+                blender_files: {
+                  obj: blenderResult.data?.files?.obj,
+                  mtl: blenderResult.data?.files?.mtl,
+                  blend_file: blenderResult.data?.files?.blend,
+                  renders: blenderResult.data?.files?.renders || []
+                }
+              }
             }
             
-            console.log('✅ Professional 3D model and renders created successfully!')
-            console.log('🔍 Stored blender_files:', boqData.professional_3d.blender_files)
-            setBlenderProcessing(false)
+            console.log('🔍 Setting result state:', newResult)
+            setResult(newResult)
+            
+            setProgress(100)
+            setCurrentStep('Generation complete!')
+            showNotification('3D model generated successfully!', 'success')
+            
+            // Auto-switch to Results tab
+            setTimeout(() => {
+              setActiveTab('results')
+            }, 1000)
+          } else {
+            throw new Error(blenderResult.error || 'Failed to generate 3D model')
           }
         } else {
-          console.warn('⚠️ Professional Blender rendering failed, using fallback')
-          setBlenderProcessing(false)
+          const errorText = await blenderResponse.text()
+          console.error('Blender API error response:', errorText)
+          throw new Error(`Blender API error! status: ${blenderResponse.status}, response: ${errorText}`)
         }
       } else {
-        setBlenderProcessing(false)
-      }
-      
-      setResult(boqData)
-      setShowViewer(true)
-      console.log('🎉 BOQ + Professional 3D generation completed!')
-      
-    } catch (error) {
-      console.error('❌ BOQ + 3D generation failed:', error)
-      alert('Failed to generate BOQ with 3D visualization. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const downloadModel = async () => {
-    console.log('🔍 DEBUG: Full result object:', result)
-    console.log('🔍 DEBUG: Professional 3D data:', result?.professional_3d)
-    console.log('🔍 DEBUG: Blender files:', result?.professional_3d?.blender_files)
-    
-    // More detailed debugging
-    if (result?.professional_3d) {
-      console.log('✅ Professional 3D exists')
-      console.log('Scene ID:', result.professional_3d.scene_id)
-      console.log('Blender files type:', typeof result.professional_3d.blender_files)
-      console.log('Blender files keys:', result.professional_3d.blender_files ? Object.keys(result.professional_3d.blender_files) : 'undefined')
-      console.log('Blender files values:', result.professional_3d.blender_files ? Object.values(result.professional_3d.blender_files) : 'undefined')
-    } else {
-      console.log('❌ No professional 3D data found')
-    }
-    
-    if (result?.professional_3d?.blender_files) {
-      // Download the specific professional 3D files that were just generated
-      try {
-        console.log('📥 Downloading professional 3D models...')
-        console.log('📊 Generated files:', result.professional_3d.blender_files)
+        // Fallback: Create basic room configuration from specs if room data is missing
+        console.warn('⚠️ Room data missing from BOQ response, creating fallback configuration')
         
-        const files = result.professional_3d.blender_files
-        let downloadCount = 0
+        // Create fallback room configuration
+        const fallbackRooms = [
+          { name: 'Living Room', type: 'living_room', width: 6, length: 5, height: 3.2, area: 30 },
+          { name: 'Kitchen', type: 'kitchen', width: 4, length: 4, height: 3.2, area: 16 },
+          { name: 'Bedroom', type: 'bedroom', width: 5, length: 4, height: 3.2, area: 20 },
+          { name: 'Bathroom', type: 'bathroom', width: 3, length: 3, height: 3.2, area: 9 }
+        ]
         
-        // Check all possible file property names
-        console.log('🔍 Checking file properties:')
-        console.log('- obj_file:', files.obj_file)
-        console.log('- mtl_file:', files.mtl_file) 
-        console.log('- blend_file:', files.blend_file)
-        console.log('- renders:', files.renders)
-        console.log('- scene_id:', files.scene_id)
-        
-        // Download OBJ file
-        if (files.obj_file) {
-          const link = document.createElement('a')
-          link.href = files.obj_file
-          link.download = `boq_model_${files.scene_id || 'unknown'}.obj`
-          link.click()
-          downloadCount++
-          console.log('📄 Downloaded OBJ file:', files.obj_file)
-        } else {
-          console.warn('❌ No OBJ file found. Available files:', Object.keys(files))
+        const fallbackConfig = {
+          rooms: fallbackRooms,
+          building_dimensions: {
+            total_width: 15,
+            total_length: 12,
+            height: 3.2
+          },
+          architectural_style: architecturalStyle,
+          quality_level: qualityLevel,
+          enhanced_features: enhancedFeatures
         }
         
-        // Download MTL file
-        if (files.mtl_file) {
-          const link = document.createElement('a')
-          link.href = files.mtl_file
-          link.download = `boq_model_${files.scene_id || 'unknown'}.mtl`
-          link.click()
-          downloadCount++
-          console.log('🎨 Downloaded MTL file:', files.mtl_file)
-        } else {
-          console.warn('❌ No MTL file found. Available files:', Object.keys(files))
-        }
+        setBlenderProcessing(true)
+        setProgress(50)
+        setCurrentStep('Generating 3D model with fallback configuration...')
         
-        // Download BLEND file
-        if (files.blend_file) {
-          const link = document.createElement('a')
-          link.href = files.blend_file
-          link.download = `boq_model_${files.scene_id || 'unknown'}.blend`
-          link.click()
-          downloadCount++
-          console.log('🔧 Downloaded BLEND file:', files.blend_file)
-        } else {
-          console.warn('❌ No BLEND file found. Available files:', Object.keys(files))
-        }
-        
-        // Download render images
-        if (files.renders && files.renders.length > 0) {
-          files.renders.forEach((renderPath: string, index: number) => {
-            if (renderPath) {
-              const link = document.createElement('a')
-              link.href = renderPath
-              link.download = `boq_render_${files.scene_id || 'unknown'}_${index + 1}.png`
-              link.click()
-              downloadCount++
-              console.log(`🖼️ Downloaded render ${index + 1}:`, renderPath)
-            }
+        const blenderResponse = await fetch('/api/mcp/blender-bridge', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            tool: 'generate_3d_model',
+            arguments: fallbackConfig
           })
-        } else {
-          console.warn('❌ No render files found. Available renders:', files.renders)
-        }
-        
-        if (downloadCount > 0) {
-          alert(`✅ Downloaded ${downloadCount} files for scene ${files.scene_id || 'unknown'}`)
-        } else {
-          alert('❌ No files available for download. Check the console for details about what data is available.')
-        }
-        
-      } catch (error) {
-        console.error('❌ Download failed:', error)
-        alert('Failed to download professional 3D models')
-      }
-    } else if (result?.model_file_path) {
-      // Fallback to basic BOQ model download
-      const link = document.createElement('a')
-      link.href = `http://localhost:8000/api/v1/boq/download-model/${result.model_file_path}`
-      link.download = result.model_file_path
-      link.click()
-    } else {
-      console.error('❌ No professional 3D data found in result:', result)
-      alert('No 3D model available for download. Please generate a BOQ first and ensure the 3D model generation succeeds.')
-    }
-  }
-
-  // Helper function to convert backend room data to 3D viewer format
-  const convertRoomsFor3DViewer = (rooms: VisualizationData['rooms']) => {
-    return rooms.map((room, index) => {
-      // Determine room type based on name
-      let roomType = 'bedroom'
-      if (room.name.toLowerCase().includes('living')) roomType = 'living_room'
-      else if (room.name.toLowerCase().includes('kitchen')) roomType = 'kitchen'
-      else if (room.name.toLowerCase().includes('bathroom')) roomType = 'bathroom'
-      else if (room.name.toLowerCase().includes('balcony')) roomType = 'balcony'
-      
-      // Generate basic layout positions
-      const position = room.position || { x: (index % 2) * room.width, y: Math.floor(index / 2) * room.length }
-      
-      // Generate basic doors and windows based on room type
-      const doors = room.doors || [{
-        type: roomType === 'living_room' ? 'premium' : 'standard',
-        width: roomType === 'bathroom' ? 2.5 : 3,
-        height: 7,
-        position: { wall: 'front', offset: room.width / 2 }
-      }]
-      
-      const windows = room.windows || (roomType === 'bathroom' ? [{
-        type: 'standard',
-        width: 2,
-        height: 2,
-        position: { wall: 'side', offset: room.width / 2 }
-      }] : [{
-        type: 'standard',
-        width: 4,
-        height: 4,
-        position: { wall: 'front', offset: room.width / 3 }
-      }, {
-        type: 'standard',
-        width: 4,
-        height: 4,
-        position: { wall: 'side', offset: room.length / 3 }
-      }])
-      
-      return {
-        id: `room-${index}`,
-        name: room.name,
-        type: roomType,
-        width: room.width,
-        length: room.length,
-        height: room.height,
-        area: room.area,
-        position: {
-          x: position.x,
-          y: 0,
-          z: position.y
-        },
-        doors,
-        windows
-      }
-    })
-  }
-
-  const generateFresh3DModel = async () => {
-    if (!result?.room_3d_data?.visualization_data) {
-      alert('Please generate a BOQ first to create the 3D model')
-      return
-    }
-    
-    setBlenderProcessing(true)
-    
-    try {
-      console.log('🔄 Generating fresh 3D model...')
-      
-      // Use the existing BOQ data but force fresh generation
-      const professionalSceneConfig = {
-        rooms: result.room_3d_data.visualization_data.rooms,
-        building_dimensions: result.room_3d_data.visualization_data.building_dimensions,
-        lighting: {
-          ambient_intensity: 0.3,
-          sun_strength: 5.0,
-          area_lights: [
-            { position: [10, -10, 20], power: 200 },
-            { position: [-10, 10, 15], power: 100 }
-          ]
-        },
-        camera: {
-          lens: 35,
-          dof_enabled: true,
-          fstop: 2.8
-        },
-        render_settings: {
-          samples: 512,
-          resolution: [2560, 1440],
-          denoising: true,
-          output_format: "png"
-        }
-      }
-      
-      // Call the professional Blender MCP bridge for fresh 3D model generation
-      console.log('🎨 Starting fresh 3D model generation...')
-      const blenderResponse = await fetch('/api/mcp/blender-bridge', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-        },
-        body: JSON.stringify({
-          tool: 'generate_3d_model',
-          arguments: {
-            ...professionalSceneConfig,
-            force_fresh: true,
-            timestamp: Date.now()
-          }
         })
-      })
-      
-      if (blenderResponse.ok) {
-        const blenderResult = await blenderResponse.json()
-        console.log('🎨 Fresh Blender result:', blenderResult)
-        console.log('🔍 Fresh generation structure:', JSON.stringify(blenderResult, null, 2))
         
-        if (blenderResult.success) {
-          // Update the result with fresh 3D data
-          setResult(prev => prev ? {
-            ...prev,
-            professional_3d: {
-              scene_id: blenderResult.result?.scene_id,
-              quality: "professional",
-              renderer: "blender_cycles",
-              samples: 512,
-              resolution: "3840x2160",
-              blender_files: blenderResult.result
-            }
-          } : null)
+        if (blenderResponse.ok) {
+          const blenderResult = await blenderResponse.json()
+          console.log('🎨 Blender result (fallback):', blenderResult)
           
-          console.log('✅ Fresh 3D model generated successfully!')
-          console.log('🔍 Fresh blender_files:', blenderResult.result)
-          alert('✅ Fresh 3D model generated! You can now download the latest files.')
+          if (blenderResult.success) {
+            setProgress(90)
+            setCurrentStep('Finalizing 3D model...')
+            
+            // Update the result with 3D data
+            const newResult = {
+              ...boqData,
+              professional_3d: {
+                scene_id: blenderResult.data?.scene_id,
+                quality: "professional",
+                renderer: "blender_cycles",
+                samples: 512,
+                resolution: "3840x2160",
+                obj_url: blenderResult.data?.files?.obj,
+                mtl_url: blenderResult.data?.files?.mtl,
+                blender_files: {
+                  obj: blenderResult.data?.files?.obj,
+                  mtl: blenderResult.data?.files?.mtl,
+                  blend_file: blenderResult.data?.files?.blend,
+                  renders: blenderResult.data?.files?.renders || []
+                }
+              }
+            }
+            
+            setResult(newResult)
+            setProgress(100)
+            setCurrentStep('Generation complete!')
+            showNotification('3D model generated successfully with fallback configuration!', 'success')
+            
+            // Auto-switch to Results tab
+            setTimeout(() => {
+              setActiveTab('results')
+            }, 1000)
+          } else {
+            throw new Error(blenderResult.error || 'Failed to generate 3D model')
+          }
         } else {
-          console.error('❌ Fresh 3D generation failed:', blenderResult.error)
-          alert('❌ Failed to generate fresh 3D model. Please try again.')
+          const errorText = await blenderResponse.text()
+          console.error('Blender API error response (fallback):', errorText)
+          throw new Error(`Blender API error! status: ${blenderResponse.status}, response: ${errorText}`)
         }
-      } else {
-        console.error('❌ Fresh 3D generation request failed')
-        alert('❌ Failed to generate fresh 3D model. Please try again.')
+      }
+      
+      // Non-3D fallback case
+      if (!boqData.room_3d_data?.visualization_data?.rooms && !blenderProcessing) {
+        // Just save the BOQ data without 3D
+        setResult(boqData)
+        setProgress(100)
+        setCurrentStep('BOQ generation complete!')
+        showNotification('BOQ generated successfully!', 'success')
+        
+        // Auto-switch to Results tab
+        setTimeout(() => {
+          setActiveTab('results')
+        }, 1000)
       }
     } catch (error) {
-      console.error('❌ Fresh 3D generation error:', error)
-      alert('❌ Failed to generate fresh 3D model. Please try again.')
+      console.error('Generation error:', error)
+      showNotification(`Generation failed: ${error}`, 'error')
     } finally {
+      setIsGenerating(false)
       setBlenderProcessing(false)
     }
   }
 
-  // DIRECT 3D GENERATION - Bypass all the complexity
-  const generateDirectModel = async () => {
-    setIsGeneratingDirect(true)
-    try {
-      console.log('🚀 DIRECT 3D MODEL GENERATION STARTING...')
-      
-      // Call the Blender API directly with simple room config
-      const directConfig = {
-        rooms: [
-          {
-            name: "modern_living_room",
-            type: "living_room",
-            width: 20,
-            length: 15,
-            height: 12,
-            position: { x: 0, y: 0, z: 0 }
-          },
-          {
-            name: "master_bedroom",
-            type: "bedroom", 
-            width: 15,
-            length: 12,
-            height: 10,
-            position: { x: 25, y: 0, z: 0 }
-          }
-        ],
-        building_dimensions: {
-          total_width: 50,
-          total_length: 20,
-          height: 12
-        }
-      }
-      
-      console.log('🎯 Calling Blender API directly...')
-      const response = await fetch('/api/mcp/blender-bridge', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          tool: 'generate_3d_model',
-          arguments: directConfig
-        })
-      })
-      
-      if (response.ok) {
-        const result = await response.json()
-        console.log('✅ DIRECT GENERATION SUCCESS:', result)
-        
-        if (result.success && result.result) {
-          console.log('📁 Files received:', result.result)
-          
-          // Force download immediately
-          const files = result.result
-          let downloadCount = 0
-          
-          // Download OBJ
-          if (files.obj_file) {
-            const link = document.createElement('a')
-            link.href = files.obj_file
-            link.download = `constructai_model_${files.scene_id}.obj`
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
-            downloadCount++
-            console.log('✅ OBJ Downloaded:', files.obj_file)
-          }
-          
-          // Download MTL
-          if (files.mtl_file) {
-            const link = document.createElement('a')
-            link.href = files.mtl_file
-            link.download = `constructai_model_${files.scene_id}.mtl`
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
-            downloadCount++
-            console.log('✅ MTL Downloaded:', files.mtl_file)
-          }
-          
-          // Download BLEND
-          if (files.blend_file) {
-            const link = document.createElement('a')
-            link.href = files.blend_file
-            link.download = `constructai_model_${files.scene_id}.blend`
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
-            downloadCount++
-            console.log('✅ BLEND Downloaded:', files.blend_file)
-          }
-          
-          // Download all renders
-          if (files.renders && files.renders.length > 0) {
-            files.renders.forEach((renderUrl: string, index: number) => {
-              const link = document.createElement('a')
-              link.href = renderUrl
-              link.download = `constructai_render_${files.scene_id}_${index + 1}.png`
-              document.body.appendChild(link)
-              link.click()
-              document.body.removeChild(link)
-              downloadCount++
-              console.log('✅ Render Downloaded:', renderUrl)
-            })
-          }
-          
-          alert(`🎉 SUCCESS! Generated and downloaded ${downloadCount} files instantly!\\n\\nFiles: ${files.scene_id}\\n\\nCheck your Downloads folder.`)
-        } else {
-          alert('❌ Generation failed: ' + (result.error || 'Unknown error'))
-        }
-      } else {
-        alert('❌ API call failed')
-      }
-      
-    } catch (error) {
-      console.error('❌ Direct generation error:', error)
-      alert('❌ Direct generation failed: ' + error)
-    } finally {
-      setIsGeneratingDirect(false)
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Enhanced BOQ Generator with 3D Room Viewer
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            ConstructAI Professional 3D BOQ Generator
           </h1>
-          <p className="text-gray-600">
-            Calculate detailed construction costs and visualize your rooms in 3D
+          <p className="text-gray-600 text-lg">
+            Generate detailed construction costs with ultra-realistic 3D architectural visualizations
           </p>
+          <div className="flex justify-center items-center gap-4 mt-4">
+            <Badge variant="outline" className="bg-white">
+              <Sparkles className="w-4 h-4 mr-2" />
+              AI-Powered
+            </Badge>
+            <Badge variant="outline" className="bg-white">
+              <Layers3 className="w-4 h-4 mr-2" />
+              3D Visualization
+            </Badge>
+            <Badge variant="outline" className="bg-white">
+              <Zap className="w-4 h-4 mr-2" />
+              GPU Accelerated
+            </Badge>
+            {result && (
+              <Badge variant="outline" className="bg-green-50 border-green-200">
+                <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+                Generated
+              </Badge>
+            )}
+            {isGenerating && (
+              <Badge variant="outline" className="bg-blue-50 border-blue-200">
+                <Loader2 className="w-4 h-4 mr-2 text-blue-600 animate-spin" />
+                Processing...
+              </Badge>
+            )}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Input Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="w-5 h-5" />
-                Project Specifications
-              </CardTitle>
-              <CardDescription>
-                Enter your project details for accurate BOQ and 3D visualization
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Basic Specifications */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900">Basic Details</h3>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="area">Total Area (sqft)</Label>
-                    <Input
-                      id="area"
-                      type="number"
-                      value={specs.total_area}
-                      onChange={(e) => updateSpec('total_area', Number(e.target.value))}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="floors">Number of Floors</Label>
-                    <Input
-                      id="floors"
-                      type="number"
-                      value={specs.num_floors}
-                      onChange={(e) => updateSpec('num_floors', Number(e.target.value))}
-                    />
-                  </div>
-                </div>
+        {/* Alert System */}
+        {showAlert && (
+          <Alert className={`mb-6 ${alertType === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
+            {alertType === 'success' ? (
+              <CheckCircle className="h-4 w-4 text-green-600" />
+            ) : (
+              <AlertCircle className="h-4 w-4 text-red-600" />
+            )}
+            <AlertDescription className={alertType === 'success' ? 'text-green-800' : 'text-red-800'}>
+              {alertMessage}
+            </AlertDescription>
+          </Alert>
+        )}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="construction-type">Construction Type</Label>
-                    <Select value={specs.construction_type} onValueChange={(value) => updateSpec('construction_type', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="residential">Residential</SelectItem>
-                        <SelectItem value="commercial">Commercial</SelectItem>
-                        <SelectItem value="industrial">Industrial</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="quality">Quality Grade</Label>
-                    <Select value={specs.quality_grade} onValueChange={(value) => updateSpec('quality_grade', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="basic">Basic</SelectItem>
-                        <SelectItem value="standard">Standard</SelectItem>
-                        <SelectItem value="premium">Premium</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+        {/* Progress Bar */}
+        {(isGenerating || blenderProcessing) && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">
+                {blenderProcessing ? 'Rendering professional 3D model...' : currentStep}
+              </span>
+              <span className="text-sm text-gray-500">{progress}%</span>
+            </div>
+            <Progress value={progress} className="w-full" />
+            {blenderProcessing && (
+              <div className="flex items-center justify-center mt-2">
+                <Sparkles className="w-4 h-4 text-purple-600 animate-pulse mr-2" />
+                <span className="text-sm text-purple-600">GPU-accelerated rendering in progress...</span>
               </div>
+            )}
+          </div>
+        )}
 
-              {/* Room Count Specifications */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900">Room Requirements</h3>
-                <p className="text-sm text-gray-600">Specify exactly how many of each room type you need</p>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="bedrooms">Bedrooms</Label>
-                    <Input
-                      id="bedrooms"
-                      type="number"
-                      min="0"
-                      value={specs.num_bedrooms}
-                      onChange={(e) => updateSpec('num_bedrooms', Number(e.target.value))}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="living-rooms">Living Rooms</Label>
-                    <Input
-                      id="living-rooms"
-                      type="number"
-                      min="0"
-                      value={specs.num_living_rooms}
-                      onChange={(e) => updateSpec('num_living_rooms', Number(e.target.value))}
-                    />
-                  </div>
-                </div>
+        {/* Debug Info */}
+        {result && (
+          <div className="mb-4 p-4 bg-gray-100 rounded-lg text-xs">
+            <p><strong>Result Data:</strong></p>
+            <p>Scene ID: {result.professional_3d?.scene_id || 'N/A'}</p>
+            <p>OBJ File: {result.professional_3d?.blender_files?.obj || 'N/A'}</p>
+            <p>MTL File: {result.professional_3d?.blender_files?.mtl || 'N/A'}</p>
+            <p>Has professional_3d: {result.professional_3d ? 'Yes' : 'No'}</p>
+            <p>Has blender_files: {result.professional_3d?.blender_files ? 'Yes' : 'No'}</p>
+            <p><strong>Debug - Raw Values:</strong></p>
+            <p>blender_files type: {typeof result.professional_3d?.blender_files}</p>
+            <p>obj property: &quot;{result.professional_3d?.blender_files?.obj || 'UNDEFINED'}&quot;</p>
+            <p>mtl property: &quot;{result.professional_3d?.blender_files?.mtl || 'UNDEFINED'}&quot;</p>
+            <details className="mt-2">
+              <summary className="cursor-pointer text-blue-600">Full Result Object</summary>
+              <pre className="mt-2 p-2 bg-white rounded text-xs overflow-auto max-h-40">
+                {JSON.stringify(result, null, 2)}
+              </pre>
+            </details>
+            <details className="mt-2">
+              <summary className="cursor-pointer text-blue-600">Professional 3D Object Only</summary>
+              <pre className="mt-2 p-2 bg-white rounded text-xs overflow-auto max-h-40">
+                {JSON.stringify(result.professional_3d, null, 2)}
+              </pre>
+            </details>
+          </div>
+        )}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="kitchens">Kitchens</Label>
-                    <Input
-                      id="kitchens"
-                      type="number"
-                      min="0"
-                      value={specs.num_kitchens}
-                      onChange={(e) => updateSpec('num_kitchens', Number(e.target.value))}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="bathrooms">Bathrooms</Label>
-                    <Input
-                      id="bathrooms"
-                      type="number"
-                      min="0"
-                      value={specs.num_bathrooms}
-                      onChange={(e) => updateSpec('num_bathrooms', Number(e.target.value))}
-                    />
-                  </div>
-                </div>
+        {/* Main Tabbed Interface */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
+            <TabsTrigger value="generator" className="flex items-center gap-2">
+              <Building2 className="w-4 h-4" />
+              3D Generator
+            </TabsTrigger>
+            <TabsTrigger value="features" className="flex items-center gap-2">
+              <Star className="w-4 h-4" />
+              Enhanced Features
+            </TabsTrigger>
+            <TabsTrigger value="results" className="flex items-center gap-2" disabled={!result}>
+              <Calculator className="w-4 h-4" />
+              BOQ Results
+            </TabsTrigger>
+            <TabsTrigger value="viewer" className="flex items-center gap-2" disabled={!result}>
+              <Monitor className="w-4 h-4" />
+              3D Viewer
+            </TabsTrigger>
+          </TabsList>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="dining-rooms">Dining Rooms</Label>
-                    <Input
-                      id="dining-rooms"
-                      type="number"
-                      min="0"
-                      value={specs.num_dining_rooms}
-                      onChange={(e) => updateSpec('num_dining_rooms', Number(e.target.value))}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="study-rooms">Study/Office Rooms</Label>
-                    <Input
-                      id="study-rooms"
-                      type="number"
-                      min="0"
-                      value={specs.num_study_rooms}
-                      onChange={(e) => updateSpec('num_study_rooms', Number(e.target.value))}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="guest-rooms">Guest Rooms</Label>
-                    <Input
-                      id="guest-rooms"
-                      type="number"
-                      min="0"
-                      value={specs.num_guest_rooms}
-                      onChange={(e) => updateSpec('num_guest_rooms', Number(e.target.value))}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="utility-rooms">Utility Rooms</Label>
-                    <Input
-                      id="utility-rooms"
-                      type="number"
-                      min="0"
-                      value={specs.num_utility_rooms}
-                      onChange={(e) => updateSpec('num_utility_rooms', Number(e.target.value))}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="store-rooms">Store Rooms</Label>
-                    <Input
-                      id="store-rooms"
-                      type="number"
-                      min="0"
-                      value={specs.num_store_rooms}
-                      onChange={(e) => updateSpec('num_store_rooms', Number(e.target.value))}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* 3D Room Specifications */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900">3D Room Details</h3>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="height">Room Height (ft)</Label>
-                    <Input
-                      id="height"
-                      type="number"
-                      step="0.5"
-                      value={specs.room_height}
-                      onChange={(e) => updateSpec('room_height', Number(e.target.value))}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="wall-thickness">Wall Thickness (ft)</Label>
-                    <Input
-                      id="wall-thickness"
-                      type="number"
-                      step="0.1"
-                      value={specs.wall_thickness}
-                      onChange={(e) => updateSpec('wall_thickness', Number(e.target.value))}
-                    />
-                  </div>
-                </div>
-
-                {/* Doors per Room Type */}
-                <div className="space-y-3">
-                  <h4 className="font-medium text-gray-800">Doors per Room Type</h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="doors-bedroom">Doors per Bedroom</Label>
-                      <Input
-                        id="doors-bedroom"
-                        type="number"
-                        min="1"
-                        value={specs.doors_per_bedroom}
-                        onChange={(e) => updateSpec('doors_per_bedroom', Number(e.target.value))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="doors-living">Doors per Living Room</Label>
-                      <Input
-                        id="doors-living"
-                        type="number"
-                        min="1"
-                        value={specs.doors_per_living_room}
-                        onChange={(e) => updateSpec('doors_per_living_room', Number(e.target.value))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="doors-kitchen">Doors per Kitchen</Label>
-                      <Input
-                        id="doors-kitchen"
-                        type="number"
-                        min="1"
-                        value={specs.doors_per_kitchen}
-                        onChange={(e) => updateSpec('doors_per_kitchen', Number(e.target.value))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="doors-bathroom">Doors per Bathroom</Label>
-                      <Input
-                        id="doors-bathroom"
-                        type="number"
-                        min="1"
-                        value={specs.doors_per_bathroom}
-                        onChange={(e) => updateSpec('doors_per_bathroom', Number(e.target.value))}
-                      />
-                    </div>
-                    {specs.num_dining_rooms > 0 && (
-                      <div className="space-y-2">
-                        <Label htmlFor="doors-dining">Doors per Dining Room</Label>
-                        <Input
-                          id="doors-dining"
-                          type="number"
-                          min="1"
-                          value={specs.doors_per_dining_room}
-                          onChange={(e) => updateSpec('doors_per_dining_room', Number(e.target.value))}
-                        />
-                      </div>
-                    )}
-                    {specs.num_study_rooms > 0 && (
-                      <div className="space-y-2">
-                        <Label htmlFor="doors-study">Doors per Study Room</Label>
-                        <Input
-                          id="doors-study"
-                          type="number"
-                          min="1"
-                          value={specs.doors_per_study_room}
-                          onChange={(e) => updateSpec('doors_per_study_room', Number(e.target.value))}
-                        />
-                      </div>
-                    )}
-                    {specs.num_guest_rooms > 0 && (
-                      <div className="space-y-2">
-                        <Label htmlFor="doors-guest">Doors per Guest Room</Label>
-                        <Input
-                          id="doors-guest"
-                          type="number"
-                          min="1"
-                          value={specs.doors_per_guest_room}
-                          onChange={(e) => updateSpec('doors_per_guest_room', Number(e.target.value))}
-                        />
-                      </div>
-                    )}
-                    {specs.num_utility_rooms > 0 && (
-                      <div className="space-y-2">
-                        <Label htmlFor="doors-utility">Doors per Utility Room</Label>
-                        <Input
-                          id="doors-utility"
-                          type="number"
-                          min="1"
-                          value={specs.doors_per_utility_room}
-                          onChange={(e) => updateSpec('doors_per_utility_room', Number(e.target.value))}
-                        />
-                      </div>
-                    )}
-                    {specs.num_store_rooms > 0 && (
-                      <div className="space-y-2">
-                        <Label htmlFor="doors-store">Doors per Store Room</Label>
-                        <Input
-                          id="doors-store"
-                          type="number"
-                          min="1"
-                          value={specs.doors_per_store_room}
-                          onChange={(e) => updateSpec('doors_per_store_room', Number(e.target.value))}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Windows per Room Type */}
-                <div className="space-y-3">
-                  <h4 className="font-medium text-gray-800">Windows per Room Type</h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="windows-bedroom">Windows per Bedroom</Label>
-                      <Input
-                        id="windows-bedroom"
-                        type="number"
-                        min="0"
-                        value={specs.windows_per_bedroom}
-                        onChange={(e) => updateSpec('windows_per_bedroom', Number(e.target.value))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="windows-living">Windows per Living Room</Label>
-                      <Input
-                        id="windows-living"
-                        type="number"
-                        min="0"
-                        value={specs.windows_per_living_room}
-                        onChange={(e) => updateSpec('windows_per_living_room', Number(e.target.value))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="windows-kitchen">Windows per Kitchen</Label>
-                      <Input
-                        id="windows-kitchen"
-                        type="number"
-                        min="0"
-                        value={specs.windows_per_kitchen}
-                        onChange={(e) => updateSpec('windows_per_kitchen', Number(e.target.value))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="windows-bathroom">Windows per Bathroom</Label>
-                      <Input
-                        id="windows-bathroom"
-                        type="number"
-                        min="0"
-                        value={specs.windows_per_bathroom}
-                        onChange={(e) => updateSpec('windows_per_bathroom', Number(e.target.value))}
-                      />
-                    </div>
-                    {specs.num_dining_rooms > 0 && (
-                      <div className="space-y-2">
-                        <Label htmlFor="windows-dining">Windows per Dining Room</Label>
-                        <Input
-                          id="windows-dining"
-                          type="number"
-                          min="0"
-                          value={specs.windows_per_dining_room}
-                          onChange={(e) => updateSpec('windows_per_dining_room', Number(e.target.value))}
-                        />
-                      </div>
-                    )}
-                    {specs.num_study_rooms > 0 && (
-                      <div className="space-y-2">
-                        <Label htmlFor="windows-study">Windows per Study Room</Label>
-                        <Input
-                          id="windows-study"
-                          type="number"
-                          min="0"
-                          value={specs.windows_per_study_room}
-                          onChange={(e) => updateSpec('windows_per_study_room', Number(e.target.value))}
-                        />
-                      </div>
-                    )}
-                    {specs.num_guest_rooms > 0 && (
-                      <div className="space-y-2">
-                        <Label htmlFor="windows-guest">Windows per Guest Room</Label>
-                        <Input
-                          id="windows-guest"
-                          type="number"
-                          min="0"
-                          value={specs.windows_per_guest_room}
-                          onChange={(e) => updateSpec('windows_per_guest_room', Number(e.target.value))}
-                        />
-                      </div>
-                    )}
-                    {specs.num_utility_rooms > 0 && (
-                      <div className="space-y-2">
-                        <Label htmlFor="windows-utility">Windows per Utility Room</Label>
-                        <Input
-                          id="windows-utility"
-                          type="number"
-                          min="0"
-                          value={specs.windows_per_utility_room}
-                          onChange={(e) => updateSpec('windows_per_utility_room', Number(e.target.value))}
-                        />
-                      </div>
-                    )}
-                    {specs.num_store_rooms > 0 && (
-                      <div className="space-y-2">
-                        <Label htmlFor="windows-store">Windows per Store Room</Label>
-                        <Input
-                          id="windows-store"
-                          type="number"
-                          min="0"
-                          value={specs.windows_per_store_room}
-                          onChange={(e) => updateSpec('windows_per_store_room', Number(e.target.value))}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="main-door">Main Door Type</Label>
-                    <Select value={specs.main_door_type} onValueChange={(value) => updateSpec('main_door_type', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="standard">Standard (₹8,000)</SelectItem>
-                        <SelectItem value="premium">Premium (₹15,000)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="window-type">Window Type</Label>
-                    <Select value={specs.window_type} onValueChange={(value) => updateSpec('window_type', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="standard">Standard (₹5,000)</SelectItem>
-                        <SelectItem value="premium">Premium (₹8,000)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="flooring">Flooring Type</Label>
-                    <Select value={specs.flooring_type} onValueChange={(value) => updateSpec('flooring_type', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="tiles">Tiles</SelectItem>
-                        <SelectItem value="marble">Marble</SelectItem>
-                        <SelectItem value="wood">Wood</SelectItem>
-                        <SelectItem value="vitrified">Vitrified</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="ceiling">Ceiling Type</Label>
-                    <Select value={specs.ceiling_type} onValueChange={(value) => updateSpec('ceiling_type', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="false">False Ceiling</SelectItem>
-                        <SelectItem value="pop">POP</SelectItem>
-                        <SelectItem value="wooden">Wooden</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="balcony" 
-                    checked={specs.include_balcony}
-                    onCheckedChange={(checked) => updateSpec('include_balcony', checked)}
-                  />
-                  <Label htmlFor="balcony">Include Balcony</Label>
-                </div>
-
-                {specs.include_balcony && (
-                  <div className="space-y-2">
-                    <Label htmlFor="balcony-area">Balcony Area (sqft)</Label>
-                    <Input
-                      id="balcony-area"
-                      type="number"
-                      value={specs.balcony_area}
-                      onChange={(e) => updateSpec('balcony_area', Number(e.target.value))}
-                    />
-                  </div>
-                )}
-              </div>
-
-              <Button 
-                onClick={handleCalculate} 
-                disabled={loading || blenderProcessing}
-                className="w-full"
-                size="lg"
-              >
-                {loading ? (
-                  "💰 Calculating BOQ..."
-                ) : blenderProcessing ? (
-                  "🎨 Creating Professional Blender 3D..."
-                ) : (
-                  <>
-                    <Calculator className="w-4 h-4 mr-2" />
-                    Generate BOQ + Professional Blender 3D
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Results */}
-          {result && (
+          {/* Generator Tab */}
+          <TabsContent value="generator">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Layers3 className="w-5 h-5" />
-                  BOQ Results & 3D Visualization
+                  <Building2 className="w-5 h-5" />
+                  Project Specifications
                 </CardTitle>
                 <CardDescription>
-                  Your detailed cost estimate with 3D room preview
+                  Configure your construction project parameters for accurate BOQ generation
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Cost Summary */}
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-blue-900 mb-3">Cost Summary</h3>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-600">Material Cost:</span>
-                      <div className="font-semibold">₹{result.cost_breakdown.material_cost.toLocaleString()}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Labor Cost:</span>
-                      <div className="font-semibold">₹{result.cost_breakdown.labor_cost.toLocaleString()}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Overhead:</span>
-                      <div className="font-semibold">₹{result.cost_breakdown.overhead_cost.toLocaleString()}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Per sqft:</span>
-                      <div className="font-semibold">₹{result.cost_breakdown.cost_per_sqft}</div>
-                    </div>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-blue-200">
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-semibold text-blue-900">Total Cost:</span>
-                      <span className="text-2xl font-bold text-blue-900">₹{result.cost_breakdown.total_cost.toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Professional 3D Rendering Status */}
-                {result.professional_3d && (
-                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                    <h3 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
-                      🎨 Professional Blender 3D Visualization
-                      <span className="text-xs bg-purple-200 text-purple-800 px-2 py-1 rounded-full">ACTIVE</span>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Basic Project Info */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Home className="w-4 h-4" />
+                      Basic Information
                     </h3>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-600">Renderer:</span>
-                        <div className="font-semibold">Blender Cycles (GPU)</div>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Quality:</span>
-                        <div className="font-semibold">{result.professional_3d.samples} samples</div>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Resolution:</span>
-                        <div className="font-semibold">{result.professional_3d.resolution}</div>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Scene ID:</span>
-                        <div className="font-semibold text-xs">{result.professional_3d.scene_id}</div>
-                      </div>
+                    
+                    <div>
+                      <Label htmlFor="total_area">Total Area (sq ft) *</Label>
+                      <Input
+                        id="total_area"
+                        type="number"
+                        placeholder="e.g. 1200"
+                        value={specs.total_area || ''}
+                        onChange={(e) => setSpecs(prev => ({ ...prev, total_area: parseInt(e.target.value) || 0 }))}
+                        className="mt-1"
+                        required
+                      />
                     </div>
-                    <div className="mt-3 p-2 bg-purple-100 rounded text-xs text-purple-800">
-                      ✨ Professional architectural visualization with PBR materials, cinematic lighting, and realistic furniture
-                    </div>
-                  </div>
-                )}
 
-                {/* 3D Room Info */}
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-green-900 mb-3">3D Room Layout</h3>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-gray-600">Bedrooms:</span>
-                      <div className="font-semibold">{specs.num_bedrooms}</div>
+                      <Label htmlFor="construction_type">Construction Type *</Label>
+                      <Select value={specs.construction_type} onValueChange={(value) => setSpecs(prev => ({ ...prev, construction_type: value }))}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select construction type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="RCC">RCC (Reinforced Concrete)</SelectItem>
+                          <SelectItem value="Steel">Steel Frame</SelectItem>
+                          <SelectItem value="Brick">Brick Masonry</SelectItem>
+                          <SelectItem value="Wood">Wood Frame</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
+
                     <div>
-                      <span className="text-gray-600">Living Rooms:</span>
-                      <div className="font-semibold">{specs.num_living_rooms}</div>
+                      <Label htmlFor="quality_grade">Quality Grade *</Label>
+                      <Select value={specs.quality_grade} onValueChange={(value) => setSpecs(prev => ({ ...prev, quality_grade: value }))}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select quality grade" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="basic">Basic</SelectItem>
+                          <SelectItem value="standard">Standard</SelectItem>
+                          <SelectItem value="premium">Premium</SelectItem>
+                          <SelectItem value="luxury">Luxury</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
+
                     <div>
-                      <span className="text-gray-600">Kitchens:</span>
-                      <div className="font-semibold">{specs.num_kitchens}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Bathrooms:</span>
-                      <div className="font-semibold">{specs.num_bathrooms}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Total Rooms:</span>
-                      <div className="font-semibold">{result.room_3d_data.visualization_data.rooms?.length || 0}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Additional Rooms:</span>
-                      <div className="font-semibold">
-                        {(specs.num_dining_rooms + specs.num_study_rooms + specs.num_guest_rooms + specs.num_utility_rooms + specs.num_store_rooms) || 0}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Doors:</span>
-                      <div className="font-semibold">{result.room_3d_data.visualization_data.total_doors || 0}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Windows:</span>
-                      <div className="font-semibold">{result.room_3d_data.visualization_data.total_windows || 0}</div>
-                    </div>
-                    <div className="col-span-2">
-                      <span className="text-gray-600">Building Size:</span>
-                      <div className="font-semibold">
-                        {(result.room_3d_data.visualization_data.building_dimensions?.total_width || 0).toFixed(1)} × {(result.room_3d_data.visualization_data.building_dimensions?.total_length || 0).toFixed(1)} ft
-                      </div>
+                      <Label htmlFor="room_layout">Room Layout *</Label>
+                      <Select value={specs.room_layout} onValueChange={(value) => setSpecs(prev => ({ ...prev, room_layout: value }))}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select room layout style" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="traditional">Traditional</SelectItem>
+                          <SelectItem value="modern">Modern</SelectItem>
+                          <SelectItem value="open_concept">Open Concept</SelectItem>
+                          <SelectItem value="minimalist">Minimalist</SelectItem>
+                          <SelectItem value="colonial">Colonial</SelectItem>
+                          <SelectItem value="contemporary">Contemporary</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
-                  
-                  {/* Room Breakdown */}
-                  <div className="mt-4 pt-4 border-t border-green-200">
-                    <h4 className="font-medium text-green-800 mb-2">Room Breakdown:</h4>
-                    <div className="text-xs text-green-700 space-y-1">
-                      {result.room_3d_data.visualization_data.rooms?.map((room, index) => (
-                        <div key={index} className="flex justify-between">
-                          <span>{room.name}</span>
-                          <span>{room.width?.toFixed(1)} × {room.length?.toFixed(1)} ft ({room.area?.toFixed(0)} sqft)</span>
-                        </div>
-                      ))}
+
+                  {/* Room Configuration */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Room Configuration</h3>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="num_bedrooms">Bedrooms</Label>
+                        <Input
+                          id="num_bedrooms"
+                          type="number"
+                          min="0"
+                          placeholder="e.g. 3"
+                          value={specs.num_bedrooms || ''}
+                          onChange={(e) => setSpecs(prev => ({ ...prev, num_bedrooms: parseInt(e.target.value) || 0 }))}
+                          className="mt-1"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="num_bathrooms">Bathrooms</Label>
+                        <Input
+                          id="num_bathrooms"
+                          type="number"
+                          min="0"
+                          placeholder="e.g. 2"
+                          value={specs.num_bathrooms || ''}
+                          onChange={(e) => setSpecs(prev => ({ ...prev, num_bathrooms: parseInt(e.target.value) || 0 }))}
+                          className="mt-1"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="num_living_rooms">Living Rooms</Label>
+                        <Input
+                          id="num_living_rooms"
+                          type="number"
+                          min="0"
+                          placeholder="e.g. 1"
+                          value={specs.num_living_rooms || ''}
+                          onChange={(e) => setSpecs(prev => ({ ...prev, num_living_rooms: parseInt(e.target.value) || 0 }))}
+                          className="mt-1"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="num_kitchens">Kitchens</Label>
+                        <Input
+                          id="num_kitchens"
+                          type="number"
+                          min="0"
+                          placeholder="e.g. 1"
+                          value={specs.num_kitchens || ''}
+                          onChange={(e) => setSpecs(prev => ({ ...prev, num_kitchens: parseInt(e.target.value) || 0 }))}
+                          className="mt-1"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-
-                {/* Project Summary */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900">Project Summary</h3>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-600">Configuration:</span>
-                        <div className="font-semibold">
-                          {specs.num_bedrooms}BHK + {specs.num_bathrooms} Bath
-                        </div>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Total Area:</span>
-                        <div className="font-semibold">{specs.total_area} sqft</div>
-                      </div>
-                    </div>
-                    <div className="mt-2 text-xs text-gray-500">
-                      Your {specs.num_bedrooms}BHK includes: {specs.num_bedrooms} bedroom(s), {specs.num_living_rooms} living room(s), {specs.num_kitchens} kitchen(s), and {specs.num_bathrooms} bathroom(s)
-                      {(specs.num_dining_rooms > 0 || specs.num_study_rooms > 0 || specs.num_guest_rooms > 0 || specs.num_utility_rooms > 0 || specs.num_store_rooms > 0) && (
-                        <span>
-                          {specs.num_dining_rooms > 0 && `, ${specs.num_dining_rooms} dining room(s)`}
-                          {specs.num_study_rooms > 0 && `, ${specs.num_study_rooms} study room(s)`}
-                          {specs.num_guest_rooms > 0 && `, ${specs.num_guest_rooms} guest room(s)`}
-                          {specs.num_utility_rooms > 0 && `, ${specs.num_utility_rooms} utility room(s)`}
-                          {specs.num_store_rooms > 0 && `, ${specs.num_store_rooms} store room(s)`}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Market Pricing Information */}
-                <Card className="bg-blue-50 border-blue-200">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm text-blue-800">💰 Real-Time Market Pricing</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="text-xs text-blue-700 mb-2">
-                      Prices updated with current market rates • Fluctuations reflect real market conditions
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 text-xs">
-                      <div>
-                        <span className="text-blue-600">Pricing Source:</span>
-                        <div className="font-medium">Dynamic Market Data</div>
-                      </div>
-                      <div>
-                        <span className="text-blue-600">Last Updated:</span>
-                        <div className="font-medium">{new Date().toLocaleDateString()}</div>
-                      </div>
-                    </div>
-                    <div className="mt-3 p-2 bg-white rounded border border-blue-200">
-                      <div className="text-xs text-blue-600 mb-1">Key Materials Trend:</div>
-                      <div className="flex flex-wrap gap-2 text-xs">
-                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded">Steel ↗ +2.3%</span>
-                        <span className="px-2 py-1 bg-red-100 text-red-700 rounded">Cement ↘ -0.8%</span>
-                        <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded">Bricks → Stable</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Action Buttons */}
-                <div className="flex gap-4">
-                  <Button onClick={downloadModel} variant="outline" className="flex-1">
-                    <Download className="w-4 h-4 mr-2" />
-                    {result.professional_3d ? 'Download Professional Models (.obj)' : 'Download 3D Model'}
-                  </Button>
+                
+                <div className="mt-8 pt-6 border-t border-gray-200 bg-gray-50 -mx-6 px-6 py-4 rounded-b-lg">
                   <Button 
-                    onClick={generateFresh3DModel} 
-                    variant="outline" 
-                    className="flex-1"
-                    disabled={blenderProcessing}
+                    onClick={generateModel}
+                    disabled={isGenerating}
+                    className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200"
                   >
-                    <Layers3 className="w-4 h-4 mr-2" />
-                    {blenderProcessing ? 'Generating...' : 'Generate Fresh 3D Model'}
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-3 animate-spin" />
+                        Generating 3D Model...
+                      </>
+                    ) : (
+                      <>
+                        <Calculator className="w-5 h-5 mr-3" />
+                        Generate 3D Model & BOQ
+                      </>
+                    )}
                   </Button>
-                  <Button 
-                    onClick={generateDirectModel} 
-                    variant="default"
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold"
-                    disabled={isGeneratingDirect}
-                  >
-                    <Zap className={`w-4 h-4 mr-2 ${isGeneratingDirect ? 'animate-spin' : ''}`} />
-                    {isGeneratingDirect ? 'GENERATING & DOWNLOADING...' : 'INSTANT 3D + DOWNLOAD'}
-                  </Button>
-                  <Button onClick={() => setShowViewer(!showViewer)} className="flex-1">
-                    <Eye className="w-4 h-4 mr-2" />
-                    {showViewer ? 'Hide' : 'View'} 3D Room
-                  </Button>
-                </div>
-
-                {/* 3D Viewer */}
-                {showViewer && result && (
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">Interactive 3D Room View</h3>
-                      <div className="text-sm text-gray-600">
-                        Use mouse to interact • Click and drag to rotate
-                      </div>
-                    </div>
-                    <BlenderRoomViewer
-                      rooms={convertRoomsFor3DViewer(result.room_3d_data.visualization_data.rooms) || []}
-                      buildingDimensions={result.room_3d_data.visualization_data.building_dimensions || {
-                        total_width: 30,
-                        total_length: 30,
-                        height: 10
-                      }}
-                      professional3D={result.professional_3d}
-                      className="w-full"
-                    />
-                  </div>
-                )}
-
-                {/* Detailed Items List */}
-                <div className="max-h-80 overflow-y-auto">
-                  <h3 className="font-semibold mb-3">Detailed Items</h3>
-                  <div className="space-y-2">
-                    {result.items.map((item, index) => (
-                      <div key={index} className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded">
-                        <div>
-                          <div className="font-medium">{item.item}</div>
-                          <div className="text-sm text-gray-500">
-                            {item.quantity} {item.unit} @ ₹{item.rate}
-                          </div>
-                        </div>
-                        <div className="font-semibold">₹{item.amount.toLocaleString()}</div>
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-center text-sm text-gray-600 mt-2">
+                    Click to generate professional 3D visualization with enhanced features
+                  </p>
                 </div>
               </CardContent>
             </Card>
-          )}
-        </div>
+          </TabsContent>
+
+          {/* Enhanced Features Tab */}
+          <TabsContent value="features">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="w-5 h-5" />
+                  Enhanced Features
+                </CardTitle>
+                <CardDescription>
+                  Professional 3D visualization features and settings
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Enhanced Features Toggles */}
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Wand2 className="w-4 h-4" />
+                      3D Enhancement Features
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3">
+                        <Checkbox
+                          id="furniture"
+                          checked={enhancedFeatures.furniture}
+                          onCheckedChange={(checked) => 
+                            setEnhancedFeatures(prev => ({ ...prev, furniture: checked as boolean }))
+                          }
+                        />
+                        <div className="flex items-center gap-2">
+                          <Sofa className="w-4 h-4 text-blue-600" />
+                          <Label htmlFor="furniture" className="text-sm font-medium">
+                            Furniture & Fixtures
+                          </Label>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 ml-6">
+                        Add sofas, tables, beds, chairs, and lighting fixtures
+                      </p>
+
+                      <div className="flex items-center space-x-3">
+                        <Checkbox
+                          id="landscaping"
+                          checked={enhancedFeatures.landscaping}
+                          onCheckedChange={(checked) => 
+                            setEnhancedFeatures(prev => ({ ...prev, landscaping: checked as boolean }))
+                          }
+                        />
+                        <div className="flex items-center gap-2">
+                          <TreePine className="w-4 h-4 text-green-600" />
+                          <Label htmlFor="landscaping" className="text-sm font-medium">
+                            Landscaping & Gardens
+                          </Label>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 ml-6">
+                        Include trees, shrubs, outdoor furniture, and garden elements
+                      </p>
+
+                      <div className="flex items-center space-x-3">
+                        <Checkbox
+                          id="premiumMaterials"
+                          checked={enhancedFeatures.premiumMaterials}
+                          onCheckedChange={(checked) => 
+                            setEnhancedFeatures(prev => ({ ...prev, premiumMaterials: checked as boolean }))
+                          }
+                        />
+                        <div className="flex items-center gap-2">
+                          <Palette className="w-4 h-4 text-purple-600" />
+                          <Label htmlFor="premiumMaterials" className="text-sm font-medium">
+                            Premium Materials
+                          </Label>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 ml-6">
+                        Hardwood, marble, granite, and luxury finishes
+                      </p>
+
+                      <div className="flex items-center space-x-3">
+                        <Checkbox
+                          id="interiorDetails"
+                          checked={enhancedFeatures.interiorDetails}
+                          onCheckedChange={(checked) => 
+                            setEnhancedFeatures(prev => ({ ...prev, interiorDetails: checked as boolean }))
+                          }
+                        />
+                        <div className="flex items-center gap-2">
+                          <Home className="w-4 h-4 text-orange-600" />
+                          <Label htmlFor="interiorDetails" className="text-sm font-medium">
+                            Interior Details
+                          </Label>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 ml-6">
+                        Crown molding, baseboards, and architectural features
+                      </p>
+
+                      <div className="flex items-center space-x-3">
+                        <Checkbox
+                          id="lighting"
+                          checked={enhancedFeatures.lighting}
+                          onCheckedChange={(checked) => 
+                            setEnhancedFeatures(prev => ({ ...prev, lighting: checked as boolean }))
+                          }
+                        />
+                        <div className="flex items-center gap-2">
+                          <Zap className="w-4 h-4 text-yellow-600" />
+                          <Label htmlFor="lighting" className="text-sm font-medium">
+                            Professional Lighting
+                          </Label>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 ml-6">
+                        3-point lighting system with GPU acceleration
+                      </p>
+
+                      <div className="flex items-center space-x-3">
+                        <Checkbox
+                          id="textures"
+                          checked={enhancedFeatures.textures}
+                          onCheckedChange={(checked) => 
+                            setEnhancedFeatures(prev => ({ ...prev, textures: checked as boolean }))
+                          }
+                        />
+                        <div className="flex items-center gap-2">
+                          <Layers3 className="w-4 h-4 text-indigo-600" />
+                          <Label htmlFor="textures" className="text-sm font-medium">
+                            High-Quality Textures
+                          </Label>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 ml-6">
+                        Realistic materials with procedural textures
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Style and Quality Settings */}
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Star className="w-4 h-4" />
+                      Style & Quality Settings
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="architectural_style">Architectural Style</Label>
+                        <Select value={architecturalStyle} onValueChange={setArchitecturalStyle}>
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select architectural style" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="modern">Modern</SelectItem>
+                            <SelectItem value="contemporary">Contemporary</SelectItem>
+                            <SelectItem value="traditional">Traditional</SelectItem>
+                            <SelectItem value="minimalist">Minimalist</SelectItem>
+                            <SelectItem value="luxury_villa">Luxury Villa</SelectItem>
+                            <SelectItem value="industrial">Industrial</SelectItem>
+                            <SelectItem value="scandinavian">Scandinavian</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="quality_level">Rendering Quality</Label>
+                        <Select value={qualityLevel} onValueChange={setQualityLevel}>
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select quality level" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="standard">Standard Quality</SelectItem>
+                            <SelectItem value="professional">Professional Quality</SelectItem>
+                            <SelectItem value="ultra">Ultra High Quality</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="font-medium mb-2">Feature Summary</h4>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <p>• Style: {architecturalStyle.replace('_', ' ')}</p>
+                          <p>• Quality: {qualityLevel}</p>
+                          <p>• Active Features: {Object.values(enhancedFeatures).filter(Boolean).length}/6</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6 pt-6 border-t">
+                  <Button 
+                    onClick={() => showNotification('Enhanced features updated successfully!', 'success')}
+                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                  >
+                    <Star className="w-4 h-4 mr-2" />
+                    Update Enhanced Features
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Results Tab */}
+          <TabsContent value="results">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* BOQ Summary */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calculator className="w-5 h-5" />
+                    BOQ Summary
+                  </CardTitle>
+                  <CardDescription>
+                    Detailed cost breakdown and project specifications
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {result && (
+                    <div className="space-y-6">
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border border-blue-200">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                          Total Cost: ₹{result.total_cost?.toLocaleString() || 'N/A'}
+                        </h3>
+                        <p className="text-gray-600">
+                          Professional 3D visualization included
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-gray-900">Project Details</h4>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-500">Total Area</p>
+                            <p className="font-medium">{specs.total_area} sq ft</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500">Construction Type</p>
+                            <p className="font-medium">{specs.construction_type}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500">Quality Grade</p>
+                            <p className="font-medium">{specs.quality_grade}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500">Architectural Style</p>
+                            <p className="font-medium">{architecturalStyle}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-gray-900">Room Configuration</h4>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-500">Bedrooms</p>
+                            <p className="font-medium">{specs.num_bedrooms}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500">Bathrooms</p>
+                            <p className="font-medium">{specs.num_bathrooms}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500">Living Rooms</p>
+                            <p className="font-medium">{specs.num_living_rooms}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500">Kitchens</p>
+                            <p className="font-medium">{specs.num_kitchens}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-gray-900">Enhanced Features</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {Object.entries(enhancedFeatures).map(([key, enabled]) => (
+                            <Badge 
+                              key={key} 
+                              variant={enabled ? "default" : "secondary"}
+                              className={enabled ? "bg-green-100 text-green-800" : ""}
+                            >
+                              {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="pt-4 border-t">
+                        <Button 
+                          onClick={() => {
+                            const boqData = {
+                              project_specs: specs,
+                              enhanced_features: enhancedFeatures,
+                              architectural_style: architecturalStyle,
+                              quality_level: qualityLevel,
+                              total_cost: result.total_cost,
+                              items: result.items,
+                              generated_at: new Date().toISOString()
+                            }
+                            
+                            const blob = new Blob([JSON.stringify(boqData, null, 2)], { type: 'application/json' })
+                            const url = URL.createObjectURL(blob)
+                            const a = document.createElement('a')
+                            a.href = url
+                            a.download = `BOQ_${new Date().toISOString().split('T')[0]}.json`
+                            a.click()
+                            URL.revokeObjectURL(url)
+                          }}
+                          className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Download BOQ Report
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Detailed Items */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Layers3 className="w-5 h-5" />
+                    Detailed Items
+                  </CardTitle>
+                  <CardDescription>
+                    Itemized breakdown of construction materials and labor
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {result?.items && (
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                      {result.items.map((item, index) => (
+                        <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                          <div className="flex-1">
+                            <div className="font-medium text-gray-900">{item.item}</div>
+                            <div className="text-sm text-gray-500">
+                              {item.quantity} {item.unit} @ ₹{item.rate?.toLocaleString()}
+                            </div>
+                          </div>
+                          <div className="font-semibold text-gray-900">
+                            ₹{item.amount?.toLocaleString()}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* 3D Viewer Tab */}
+          <TabsContent value="viewer">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Monitor className="w-5 h-5" />
+                  3D Model Viewer
+                </CardTitle>
+                <CardDescription>
+                  Real-time preview of your generated 3D architectural model
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {result?.professional_3d?.blender_files?.obj ? (
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h4 className="font-medium mb-2">Model Information</h4>
+                      <div className="text-sm text-gray-600 space-y-1">
+                        <p>• Scene ID: {result.professional_3d.scene_id}</p>
+                        <p>• Quality: {result.professional_3d.quality}</p>
+                        <p>• Renderer: {result.professional_3d.renderer}</p>
+                        <p>• Samples: {result.professional_3d.samples}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="border rounded-lg overflow-hidden">
+                      <ThreeJSViewer
+                        objUrl={result.professional_3d.blender_files?.obj}
+                        mtlUrl={result.professional_3d.blender_files?.mtl}
+                        width={800}
+                        height={600}
+                        onModelLoad={() => console.log('✅ Enhanced3DBOQ: 3D model loaded successfully')}
+                        onModelError={(error) => console.error('❌ Enhanced3DBOQ: 3D viewer error:', error)}
+                      />
+                    </div>
+                    
+                    {result.professional_3d.blender_files.renders && result.professional_3d.blender_files.renders.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="font-medium">Rendered Views</h4>
+                        <div className="grid grid-cols-1 gap-2">
+                          {result.professional_3d.blender_files.renders
+                            .filter((render) => render && typeof render === 'string' && render.trim() !== '')
+                            .map((render, index) => (
+                                <Button
+                                  key={index}
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    try {
+                                      // Create download link for the render
+                                      const normalizedPath = render.startsWith('/') ? render : `/${render}`;
+                                      const link = document.createElement('a');
+                                      link.href = normalizedPath;
+                                      link.download = `render_${index + 1}_${Date.now()}.png`;
+                                      link.click();
+                                    } catch (error) {
+                                      console.error('Failed to download render:', error);
+                                    }
+                                  }}
+                                  className="w-full justify-start"
+                                >
+                                  <Download className="w-4 h-4 mr-2" />
+                                  Download Render {index + 1}
+                                </Button>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={async () => {
+                          if (result.professional_3d?.blender_files?.obj) {
+                            try {
+                              // Extract filename from path
+                              const objPath = result.professional_3d.blender_files.obj;
+                              const filename = objPath.split('/').pop() || objPath;
+                              
+                              // Use the download API
+                              const downloadUrl = `/api/download/${filename}`;
+                              
+                              // Check if file exists first
+                              const response = await fetch(downloadUrl, { method: 'HEAD' });
+                              if (!response.ok) {
+                                alert(`❌ File not found: ${filename}\n\nThe 3D model may not have been generated properly. Try regenerating the model.`);
+                                return;
+                              }
+                              
+                              // Create a temporary link for download
+                              const link = document.createElement('a');
+                              link.href = downloadUrl;
+                              link.download = filename;
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            } catch (error) {
+                              console.error('Failed to download OBJ file:', error);
+                              alert('❌ Download failed. The file may not exist or there was a network error.');
+                            }
+                          }
+                        }}
+                        className="flex-1"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download OBJ
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          if (result.professional_3d?.blender_files?.mtl) {
+                            try {
+                              // Extract filename from path
+                              const mtlPath = result.professional_3d.blender_files.mtl;
+                              const filename = mtlPath.split('/').pop() || mtlPath;
+                              
+                              // Use the download API
+                              const downloadUrl = `/api/download/${filename}`;
+                              
+                              // Create a temporary link for download
+                              const link = document.createElement('a');
+                              link.href = downloadUrl;
+                              link.download = filename;
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            } catch (error) {
+                              console.error('Failed to download MTL file:', error);
+                            }
+                          }
+                        }}
+                        className="flex-1"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download MTL
+                      </Button>
+                    </div>
+                  </div>
+                ) : result?.nerf_3d ? (
+                  <div className="space-y-4">
+                    <NeRFViewer 
+                      nerfData={result.nerf_3d}
+                      className="w-full"
+                    />
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Monitor className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No 3D Model Available</h3>
+                    <p className="text-gray-500 mb-4">
+                      {result ? 'Generate a 3D model to view it here' : 'Generate a project first to view 3D models'}
+                    </p>
+                    {!result && (
+                      <Button 
+                        onClick={() => setActiveTab('generator')}
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                      >
+                        <Building2 className="w-4 h-4 mr-2" />
+                        Go to Generator
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+        
+        {/* Floating Action Button - Always visible */}
+        {activeTab === 'generator' && !result && (
+          <div className="fixed bottom-8 right-8 z-50">
+            <Button
+              onClick={generateModel}
+              disabled={isGenerating}
+              className="h-16 w-16 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110"
+            >
+              {isGenerating ? (
+                <Loader2 className="w-8 h-8 animate-spin" />
+              ) : (
+                <Calculator className="w-8 h-8" />
+              )}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )

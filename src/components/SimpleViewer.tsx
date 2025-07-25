@@ -1,16 +1,9 @@
 import React from 'react';
-
-interface SimpleViewerProps {
-  rooms: any[];
-  buildingDimensions: any;
-  onRoomSelect?: (roomId: string) => void;
-  className?: string;
-}
+import { SimpleViewerProps } from '@/types';
 
 const SimpleViewer: React.FC<SimpleViewerProps> = ({
   rooms,
   buildingDimensions,
-  onRoomSelect,
   className = '',
 }) => {
   return (

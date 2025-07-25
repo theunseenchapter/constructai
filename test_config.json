@@ -1,0 +1,55 @@
+{
+  "timestamp": 1752083300000,
+  "house": {
+    "rooms": [
+      {
+        "name": "Living Room",
+        "type": "living_room",
+        "dimensions": [5, 4, 3],
+        "location": [0, 0, 0],
+        "features": {
+          "furniture": true,
+          "lighting": true,
+          "flooring": "tiles",
+          "walls": "painted",
+          "ceiling": "false_ceiling",
+          "doors": 1,
+          "windows": 2,
+          "door_type": "standard",
+          "window_type": "sliding"
+        },
+        "materials": {
+          "quality": "standard",
+          "style": "modern",
+          "premium_materials": false,
+          "textures": true
+        }
+      }
+    ],
+    "building_dimensions": {
+      "total_width": 30,
+      "total_length": 30,
+      "height": 8
+    },
+    "architectural_style": "modern",
+    "quality_level": "professional",
+    "room_layout": "traditional",
+    "construction_specifications": {},
+    "enhanced_features": {
+      "furniture": true,
+      "lighting": true,
+      "landscaping": true,
+      "interiorDetails": true,
+      "professionalMaterials": true,
+      "highQualityRendering": true
+    },
+    "interior_design": {
+      "furniture_style": "modern",
+      "color_scheme": "standard",
+      "include_details": true,
+      "landscaping": false
+    },
+    "generation_seed": 123456,
+    "timestamp": 1752083300000
+  }
+}

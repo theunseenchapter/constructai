@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced ConstructAI - 3D Model Viewer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        h1 {
+            color: #2d3748;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .feature-card {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .feature-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .demo-section {
+            background: #1a202c;
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        .model-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .info-card {
+            background: #2d3748;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .info-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4fd1c7;
+        }
+        .info-label {
+            font-size: 0.9em;
+            color: #a0aec0;
+        }
+        .model-preview {
+            border: 2px solid #4fd1c7;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #2d3748;
+            text-align: center;
+        }
+        .download-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+        }
+        .status {
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 10px 0;
+            display: inline-block;
+        }
+        .status.success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .status.info {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏗️ Enhanced ConstructAI</h1>
+        
+        <div class="status success">
+            ✅ Ultra High-End Professional 3D Visualizations Ready
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🎨</div>
+                <h3>Premium Materials</h3>
+                <p>Hardwood, marble, granite, and luxury finishes</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🪑</div>
+                <h3>Furniture & Fixtures</h3>
+                <p>Sofas, tables, beds, and professional lighting</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🌳</div>
+                <h3>Landscaping</h3>
+                <p>Trees, shrubs, outdoor furniture, and gardens</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💡</div>
+                <h3>Advanced Lighting</h3>
+                <p>Professional 3-point lighting with GPU acceleration</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔧</div>
+                <h3>Interior Details</h3>
+                <p>Crown molding, baseboards, and architectural features</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Blender + GPU</h3>
+                <p>CUDA/OptiX acceleration for ultra-fast rendering</p>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🎨 Latest Enhanced Model</h2>
+            <div class="status info">
+                Scene ID: ac7d6181-f199-49e9-995c-768eff6c37e7
+            </div>
+            
+            <div class="model-info">
+                <div class="info-card">
+                    <div class="info-value">1,778</div>
+                    <div class="info-label">Vertices</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-value">3,366</div>
+                    <div class="info-label">Faces</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-value">11</div>
+                    <div class="info-label">Materials</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-value">291 KB</div>
+                    <div class="info-label">OBJ Size</div>
+                </div>
+            </div>
+            
+            <div class="model-preview">
+                <h3>🎯 Three.js Compatible Model</h3>
+                <p>✅ Vertices, Faces, Normals, Texture Coordinates</p>
+                <p>✅ Multiple Premium Materials</p>
+                <p>✅ Furniture, Landscaping, Interior Details</p>
+                <p>✅ Professional Lighting & Textures</p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="download-btn" onclick="downloadModel('obj')">
+                    📄 Download OBJ
+                </button>
+                <button class="download-btn" onclick="downloadModel('mtl')">
+                    🎨 Download MTL
+                </button>
+                <button class="download-btn" onclick="downloadModel('blend')">
+                    🔧 Download BLEND
+                </button>
+            </div>
+        </div>
+        
+        <div class="demo-section" style="margin-top: 20px;">
+            <h2>🚀 API Integration</h2>
+            <p>✅ Backend API: <code>POST /api/mcp/blender-bridge</code></p>
+            <p>✅ Frontend Components: Enhanced3DBOQ, ThreeJSViewer</p>
+            <p>✅ File Serving: Cache-busted URLs with timestamp</p>
+            <p>✅ Enhanced Features: All premium features enabled</p>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #4a5568; border-radius: 8px;">
+                <code style="color: #4fd1c7;">
+                    {<br>
+                    &nbsp;&nbsp;"tool": "generate_3d_model",<br>
+                    &nbsp;&nbsp;"arguments": {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;"rooms": [...],<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;"enhanced_features": {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"furniture": true,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"landscaping": true,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"premiumMaterials": true,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"interiorDetails": true,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"lighting": true,<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"textures": true<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                    &nbsp;&nbsp;}<br>
+                    }
+                </code>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function downloadModel(type) {
+            const sceneId = 'ac7d6181-f199-49e9-995c-768eff6c37e7';
+            const timestamp = Date.now();
+            const url = `/renders/enhanced_boq_${sceneId}.${type}?v=${timestamp}`;
+            
+            // Create a temporary link and click it to download
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `enhanced_boq_${sceneId}.${type}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>

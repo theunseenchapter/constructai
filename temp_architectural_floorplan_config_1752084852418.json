@@ -1,0 +1,123 @@
+{
+  "house": {
+    "rooms": [
+      {
+        "name": "Bedroom 1",
+        "type": "bedroom",
+        "width": 15.491933384829668,
+        "length": 17.041126723312637,
+        "height": 2.5,
+        "area": 264.00000000000006,
+        "features": {
+          "furniture": true,
+          "lighting": true,
+          "flooring": "tiles",
+          "walls": "RCC",
+          "ceiling": "false_ceiling",
+          "doors": 0,
+          "windows": 0,
+          "door_type": "",
+          "window_type": ""
+        },
+        "materials": {
+          "quality": "professional",
+          "style": "modern",
+          "premium_materials": true,
+          "textures": true
+        }
+      },
+      {
+        "name": "Living Room 1",
+        "type": "living_room",
+        "width": 20.079840636817814,
+        "length": 20.079840636817814,
+        "height": 2.5,
+        "area": 403.2,
+        "features": {
+          "furniture": true,
+          "lighting": true,
+          "flooring": "tiles",
+          "walls": "RCC",
+          "ceiling": "false_ceiling",
+          "doors": 0,
+          "windows": 0,
+          "door_type": "",
+          "window_type": ""
+        },
+        "materials": {
+          "quality": "professional",
+          "style": "modern",
+          "premium_materials": true,
+          "textures": true
+        }
+      },
+      {
+        "name": "Kitchen 1",
+        "type": "kitchen",
+        "width": 10.119288512538816,
+        "length": 15.17893276880822,
+        "height": 2.5,
+        "area": 153.60000000000002,
+        "features": {
+          "furniture": true,
+          "lighting": true,
+          "flooring": "tiles",
+          "walls": "RCC",
+          "ceiling": "false_ceiling",
+          "doors": 0,
+          "windows": 0,
+          "door_type": "",
+          "window_type": ""
+        },
+        "materials": {
+          "quality": "professional",
+          "style": "modern",
+          "premium_materials": true,
+          "textures": true
+        }
+      },
+      {
+        "name": "Bathroom 1",
+        "type": "bathroom",
+        "width": 4,
+        "length": 4,
+        "height": 2.5,
+        "area": 16,
+        "features": {
+          "furniture": true,
+          "lighting": true,
+          "flooring": "tiles",
+          "walls": "RCC",
+          "ceiling": "false_ceiling",
+          "doors": 0,
+          "windows": 0,
+          "door_type": "",
+          "window_type": ""
+        },
+        "materials": {
+          "quality": "professional",
+          "style": "modern",
+          "premium_materials": true,
+          "textures": true
+        }
+      }
+    ]
+  },
+  "building_dimensions": {
+    "total_width": 30,
+    "total_length": 52.437706174434254,
+    "height": 4.5
+  },
+  "render_settings": {
+    "resolution": "1920x1080",
+    "samples": 128,
+    "denoising": true,
+    "gpu_acceleration": true,
+    "camera_angles": [
+      "top_down",
+      "perspective"
+    ]
+  },
+  "generation_seed": 685652,
+  "timestamp": 1752084852418
+}

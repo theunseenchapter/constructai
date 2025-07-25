@@ -1,0 +1,23 @@
+# AI-Enhanced 3D Architecture - Style: modern
+mtllib ai_enhanced_5422d042.mtl
+
+# Room: Living Room 1
+g Room_0
+# Room: Bedroom 1
+g Room_1
+# Room: Bedroom 2
+g Room_2
+# Room: Bedroom 3
+g Room_3
+# Room: Kitchen 1
+g Room_4
+# Room: Bathroom 1
+g Room_5
+# Room: Bathroom 2
+g Room_6
+# Room: Dining Room 1
+g Room_7
+# Room: Utility Room 1
+g Room_8
+# Room: Store Room 1
+g Room_9

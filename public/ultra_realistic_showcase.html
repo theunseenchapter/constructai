@@ -1,0 +1,227 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultra-Realistic House Model Showcase</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .header h1 {
+            font-size: 3em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .feature-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .feature-card h3 {
+            color: #FFD700;
+            margin-top: 0;
+            font-size: 1.3em;
+        }
+        .model-showcase {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .model-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            margin: 20px 0;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        .btn {
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .btn-primary { background: linear-gradient(45deg, #667eea, #764ba2); }
+        .btn-success { background: linear-gradient(45deg, #56ab2f, #a8e6cf); }
+        .btn-info { background: linear-gradient(45deg, #4facfe, #00f2fe); }
+        .btn-warning { background: linear-gradient(45deg, #f093fb, #f5576c); }
+        .technical-specs {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .spec-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .spec-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #FFD700;
+        }
+        .improvement-list {
+            list-style: none;
+            padding: 0;
+        }
+        .improvement-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .improvement-list li:before {
+            content: "✨ ";
+            color: #FFD700;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Ultra-Realistic House Model</h1>
+            <p>Generated with ConstructAI's Revolutionary Ultra-Realistic Renderer</p>
+            <p><strong>Scene ID:</strong> unknown</p>
+        </div>
+        
+        <div class="features">
+            <div class="feature-card">
+                <h3>🎨 Photorealistic Materials</h3>
+                <ul class="improvement-list">
+                    <li>Textured hardwood floors with wood grain</li>
+                    <li>Marble kitchen countertops with veining</li>
+                    <li>Leather and fabric furniture materials</li>
+                    <li>Ceramic bathroom fixtures</li>
+                    <li>Chrome and glass accents</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <h3>🏡 Detailed Room Interiors</h3>
+                <ul class="improvement-list">
+                    <li>L-shaped sofas with proper cushions</li>
+                    <li>Kitchen islands with bar stools</li>
+                    <li>Complete bedroom furniture sets</li>
+                    <li>Bathroom fixtures and mirrors</li>
+                    <li>Professional lighting setup</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <h3>🔧 Advanced Geometry</h3>
+                <ul class="improvement-list">
+                    <li>Individual walls, floors, and ceilings</li>
+                    <li>Doors and windows with frames</li>
+                    <li>Proper room proportions</li>
+                    <li>Connected floor plan layout</li>
+                    <li>Realistic furniture placement</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <h3>💡 Professional Lighting</h3>
+                <ul class="improvement-list">
+                    <li>Area lights in each room</li>
+                    <li>Global sun lighting</li>
+                    <li>Warm white interior lighting</li>
+                    <li>Realistic shadows and reflections</li>
+                    <li>Cycles render engine with OptiX</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="model-showcase">
+            <h2>🎯 Model Preview</h2>
+            <p>Preview rendering in progress...</p>
+            
+            <div class="action-buttons">
+                <a href="" class="btn btn-primary">📦 Download OBJ</a>
+                <a href="" class="btn btn-success">🎨 Download MTL</a>
+                <a href="" class="btn btn-info">💾 Download BLEND</a>
+                <a href="/test_3d_viewer.html?obj=&mtl=" class="btn btn-warning">👁️ View in 3D</a>
+            </div>
+        </div>
+        
+        <div class="technical-specs">
+            <h2>📊 Technical Specifications</h2>
+            <div class="specs-grid">
+                <div class="spec-item">
+                    <div class="spec-value">4</div>
+                    <div>Rooms</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-value">50+</div>
+                    <div>Objects</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-value">15+</div>
+                    <div>Materials</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-value">2K</div>
+                    <div>Resolution</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-value">256</div>
+                    <div>Samples</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-value">Cycles</div>
+                    <div>Engine</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

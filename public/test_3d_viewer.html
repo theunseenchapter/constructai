@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Model Test - Connected Floor Plan</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        #container {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            position: relative;
+            background-color: white;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+        .controls {
+            margin-top: 10px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .status.loading {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+        }
+        .status.success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏠 Connected Floor Plan Test</h1>
+    <div id="status" class="status loading">Loading 3D viewer...</div>
+    
+    <div id="container">
+        <div id="info">
+            <h3>3D Model Info</h3>
+            <p>Status: <span id="model-status">Loading...</span></p>
+            <p>Vertices: <span id="vertices">0</span></p>
+            <p>Faces: <span id="faces">0</span></p>
+            <p>Materials: <span id="materials">0</span></p>
+            <p>Objects: <span id="objects">0</span></p>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button onclick="resetCamera()">Reset Camera</button>
+        <button onclick="toggleAutoRotate()">Toggle Auto-Rotate</button>
+        <button onclick="toggleWireframe()">Toggle Wireframe</button>
+        <button onclick="testNewModel()">Test New Model</button>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/MTLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <script>
+        let scene, camera, renderer, controls;
+        let currentModel = null;
+        let stats = {
+            vertices: 0,
+            faces: 0,
+            materials: 0,
+            objects: 0
+        };
+        
+        // Test with the most recent generated model
+        const TEST_OBJ_URL = '/renders/connected_floor_plan_23c8b169-3591-44ee-aad2-b2523bb5b22c.obj?v=1751790756981';
+        const TEST_MTL_URL = '/renders/connected_floor_plan_23c8b169-3591-44ee-aad2-b2523bb5b22c.mtl?v=1751790756981';
+        
+        function updateStatus(message, type = 'loading') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+        
+        function updateModelInfo() {
+            document.getElementById('model-status').textContent = currentModel ? 'Loaded' : 'Not loaded';
+            document.getElementById('vertices').textContent = stats.vertices;
+            document.getElementById('faces').textContent = stats.faces;
+            document.getElementById('materials').textContent = stats.materials;
+            document.getElementById('objects').textContent = stats.objects;
+        }
+        
+        function init() {
+            const container = document.getElementById('container');
+            
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf0f0f0);
+            
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(20, 20, 20);
+            
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+            
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enableZoom = true;
+            controls.autoRotate = false;
+            controls.autoRotateSpeed = 0.5;
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(20, 20, 20);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+            
+            // Additional lights
+            const light1 = new THREE.DirectionalLight(0xffffff, 0.4);
+            light1.position.set(-20, 20, -20);
+            scene.add(light1);
+            
+            const light2 = new THREE.DirectionalLight(0xffffff, 0.3);
+            light2.position.set(0, -20, 20);
+            scene.add(light2);
+            
+            // Load the model
+            loadModel();
+            
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+            
+            updateStatus('3D viewer initialized', 'success');
+        }
+        
+        function loadModel() {
+            updateStatus('Loading 3D model...', 'loading');
+            
+            // Clear existing model
+            if (currentModel) {
+                scene.remove(currentModel);
+                currentModel = null;
+            }
+            
+            // Load MTL file first
+            const mtlLoader = new THREE.MTLLoader();
+            mtlLoader.load(TEST_MTL_URL, function(materials) {
+                materials.preload();
+                
+                // Load OBJ file
+                const objLoader = new THREE.OBJLoader();
+                objLoader.setMaterials(materials);
+                objLoader.load(TEST_OBJ_URL, function(object) {
+                    
+                    // Calculate stats
+                    stats = {
+                        vertices: 0,
+                        faces: 0,
+                        materials: 0,
+                        objects: 0
+                    };
+                    
+                    object.traverse(function(child) {
+                        if (child.isMesh) {
+                            stats.objects++;
+                            if (child.geometry) {
+                                stats.vertices += child.geometry.attributes.position ? child.geometry.attributes.position.count : 0;
+                                stats.faces += child.geometry.index ? child.geometry.index.count / 3 : 0;
+                            }
+                            if (child.material) {
+                                stats.materials++;
+                            }
+                        }
+                    });
+                    
+                    stats.faces = Math.floor(stats.faces);
+                    
+                    // Apply colorful floor plan materials
+                    const floorPlanMaterials = {
+                        living: new THREE.MeshLambertMaterial({ color: 0xcd853f }), // Sandy brown
+                        kitchen: new THREE.MeshLambertMaterial({ color: 0xe6e6fa }), // Lavender
+                        bedroom: new THREE.MeshLambertMaterial({ color: 0xdaa520 }), // Goldenrod
+                        bathroom: new THREE.MeshLambertMaterial({ color: 0x87ceeb }), // Sky blue
+                        wall: new THREE.MeshLambertMaterial({ color: 0xf5f5f5 }), // White smoke
+                        exterior: new THREE.MeshLambertMaterial({ color: 0x696969 }), // Dim gray
+                        furniture: new THREE.MeshLambertMaterial({ color: 0x8b4513 }), // Saddle brown
+                        door: new THREE.MeshLambertMaterial({ color: 0xa0522d }), // Sienna
+                        window: new THREE.MeshLambertMaterial({ color: 0x87cefa, transparent: true, opacity: 0.6 }), // Light sky blue
+                        default: new THREE.MeshLambertMaterial({ color: 0xcccccc }) // Light gray
+                    };
+                    
+                    // Apply materials based on object names
+                    object.traverse(function(child) {
+                        if (child.isMesh) {
+                            const name = child.name.toLowerCase();
+                            let material = floorPlanMaterials.default;
+                            
+                            if (name.includes('floor')) {
+                                if (name.includes('living')) material = floorPlanMaterials.living;
+                                else if (name.includes('kitchen')) material = floorPlanMaterials.kitchen;
+                                else if (name.includes('bedroom')) material = floorPlanMaterials.bedroom;
+                                else if (name.includes('bathroom')) material = floorPlanMaterials.bathroom;
+                                else material = floorPlanMaterials.living;
+                            } else if (name.includes('wall')) {
+                                if (name.includes('exterior')) material = floorPlanMaterials.exterior;
+                                else material = floorPlanMaterials.wall;
+                            } else if (name.includes('furniture')) {
+                                material = floorPlanMaterials.furniture;
+                            } else if (name.includes('door')) {
+                                material = floorPlanMaterials.door;
+                            } else if (name.includes('window')) {
+                                material = floorPlanMaterials.window;
+                            }
+                            
+                            child.material = material;
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+                    
+                    // Center and scale the model
+                    const box = new THREE.Box3().setFromObject(object);
+                    const center = box.getCenter(new THREE.Vector3());
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = 10 / maxDim;
+                    
+                    object.scale.setScalar(scale);
+                    object.position.sub(center.multiplyScalar(scale));
+                    
+                    scene.add(object);
+                    currentModel = object;
+                    
+                    updateModelInfo();
+                    updateStatus('3D model loaded successfully!', 'success');
+                    
+                }, function(progress) {
+                    updateStatus('Loading model... ' + Math.round(progress.loaded / progress.total * 100) + '%', 'loading');
+                }, function(error) {
+                    console.error('Error loading OBJ:', error);
+                    updateStatus('Error loading OBJ file: ' + error.message, 'error');
+                });
+                
+            }, function(progress) {
+                updateStatus('Loading materials... ' + Math.round(progress.loaded / progress.total * 100) + '%', 'loading');
+            }, function(error) {
+                console.error('Error loading MTL:', error);
+                updateStatus('Error loading MTL file: ' + error.message, 'error');
+            });
+        }
+        
+        function resetCamera() {
+            camera.position.set(20, 20, 20);
+            controls.reset();
+        }
+        
+        function toggleAutoRotate() {
+            controls.autoRotate = !controls.autoRotate;
+        }
+        
+        function toggleWireframe() {
+            if (currentModel) {
+                currentModel.traverse(function(child) {
+                    if (child.isMesh) {
+                        child.material.wireframe = !child.material.wireframe;
+                    }
+                });
+            }
+        }
+        
+        function testNewModel() {
+            loadModel();
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const container = document.getElementById('container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+        
+        // Initialize when page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

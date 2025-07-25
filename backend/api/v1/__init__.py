@@ -63,3 +63,10 @@ try:
     api_router.include_router(ai.router, prefix="/ai", tags=["AI"])
 except Exception as e:
     print(f"⚠️ AI endpoint not loaded: {e}")
+
+try:
+    from .endpoints import real_nerf
+    api_router.include_router(real_nerf.router, prefix="/real-nerf", tags=["Real NeRF"])
+    print("✅ Real NeRF endpoint loaded successfully!")
+except Exception as e:
+    print(f"⚠️ Real NeRF endpoint not loaded: {e}")

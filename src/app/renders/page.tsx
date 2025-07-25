@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Camera, Download, Eye, RefreshCw, FolderOpen } from 'lucide-react';
-import Image from 'next/image';
+import SafeImage from '@/components/SafeImage';
 
 interface RenderFile {
   name: string;
@@ -187,13 +187,12 @@ export default function RenderViewerPage() {
                   {/* Image */}
                   <div className="border rounded-lg p-4 bg-gray-50">
                     <div className="relative">
-                      <Image
+                      <SafeImage
                         src={selectedRender.url}
                         alt={selectedRender.name}
                         width={800}
                         height={600}
                         className="max-w-full max-h-full object-contain mx-auto rounded-lg shadow-md"
-                        unoptimized // Since these are dynamic temp files
                       />
                       
                       {/* Overlay Controls */}

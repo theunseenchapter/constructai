@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple 3D Model Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/MTLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <div id="container" style="width: 800px; height: 600px; border: 1px solid #ccc; margin: 20px;"></div>
+    <div id="info" style="margin: 20px; font-family: Arial;">
+        <h3>3D Model Test</h3>
+        <p>Scene ID: ultra_detailed_4475</p>
+        <p>OBJ URL: http://localhost:3000/renders/ultra_detailed_4475.obj?v=1751821093987</p>
+        <p>MTL URL: http://localhost:3000/renders/ultra_detailed_4475.mtl?v=1751821093987</p>
+        <p>Status: <span id="status">Loading...</span></p>
+    </div>
+    
+    <script>
+        let scene, camera, renderer, controls;
+        
+        function init() {
+            const container = document.getElementById('container');
+            
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf0f0f0);
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, 800/600, 0.1, 1000);
+            camera.position.set(10, 10, 10);
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(800, 600);
+            container.appendChild(renderer.domElement);
+            
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 10, 5);
+            scene.add(directionalLight);
+            
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+            
+            // Load model
+            loadModel();
+        }
+        
+        function loadModel() {
+            const mtlLoader = new THREE.MTLLoader();
+            const objLoader = new THREE.OBJLoader();
+            
+            document.getElementById('status').textContent = 'Loading materials...';
+            
+            mtlLoader.load('http://localhost:3000/renders/ultra_detailed_4475.mtl?v=1751821093987', function(materials) {
+                materials.preload();
+                
+                document.getElementById('status').textContent = 'Loading geometry...';
+                
+                objLoader.setMaterials(materials);
+                objLoader.load('http://localhost:3000/renders/ultra_detailed_4475.obj?v=1751821093987', function(object) {
+                    // Center and scale the model
+                    const box = new THREE.Box3().setFromObject(object);
+                    const center = box.getCenter(new THREE.Vector3());
+                    const size = box.getSize(new THREE.Vector3());
+                    
+                    object.position.sub(center);
+                    
+                    const maxSize = Math.max(size.x, size.y, size.z);
+                    if (maxSize > 0) {
+                        const scale = 8 / maxSize;
+                        object.scale.setScalar(scale);
+                    }
+                    
+                    scene.add(object);
+                    
+                    document.getElementById('status').textContent = 'Model loaded successfully!';
+                    console.log('Model loaded:', object);
+                    
+                }, function(progress) {
+                    console.log('Loading progress:', progress);
+                }, function(error) {
+                    console.error('Error loading OBJ:', error);
+                    document.getElementById('status').textContent = 'Error loading model: ' + error.message;
+                });
+                
+            }, function(progress) {
+                console.log('MTL progress:', progress);
+            }, function(error) {
+                console.error('Error loading MTL:', error);
+                document.getElementById('status').textContent = 'Error loading materials: ' + error.message;
+            });
+        }
+        
+        // Initialize when page loads
+        window.onload = init;
+    </script>
+</body>
+</html>

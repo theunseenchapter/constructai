@@ -79,9 +79,11 @@ segmentation_model = None
 floor_plan_model = None
 model_loaded = False
 
-# Create directories
+# Create directories for both backend storage and public serving
 MODELS_DIR = "generated_models"
+PUBLIC_RENDERS_DIR = "../public/renders"
 os.makedirs(MODELS_DIR, exist_ok=True)
+os.makedirs(PUBLIC_RENDERS_DIR, exist_ok=True)
 
 # Pydantic models
 class APIResponse(BaseModel):
@@ -106,7 +108,7 @@ class VisionAnalysisResult(BaseModel):
 
 async def load_vision_models():
     """Load AI models with fallback handling"""
-    global yolo_model, segmentation_model, floor_plan_model, model_loaded
+    global yolo_model, segmentation_model, model_loaded
     
     if model_loaded:
         return True
@@ -1132,11 +1134,24 @@ async def convert_blueprint_to_3d(file: UploadFile = File(...)):
         model_3d_data = json.loads(base64.b64decode(result["model_3d_data"]).decode())
         obj_content = convert_to_obj_format(model_3d_data)
         
-        obj_path = os.path.join(MODELS_DIR, f"model_{blueprint_id}.obj")
-        with open(obj_path, 'w') as f:
+        # Save to both locations for accessibility
+        obj_path_backend = os.path.join(MODELS_DIR, f"model_{blueprint_id}.obj")
+        obj_path_public = os.path.join(PUBLIC_RENDERS_DIR, f"model_{blueprint_id}.obj")
+        
+        # Write to backend location
+        with open(obj_path_backend, 'w') as f:
             f.write(obj_content)
         
-        print(f"✅ 3D model saved: {obj_path}")
+        # Write to public location for web serving
+        try:
+            with open(obj_path_public, 'w') as f:
+                f.write(obj_content)
+            print(f"✅ 3D model saved to both locations:")
+            print(f"   Backend: {obj_path_backend}")
+            print(f"   Public: {obj_path_public}")
+        except Exception as e:
+            print(f"⚠️ Could not save to public location: {e}")
+            print(f"✅ 3D model saved to backend: {obj_path_backend}")
         print(f"📊 Final stats: {len(result['rooms'])} rooms, {len(result['walls'])} walls, {result['dimensions']['area']:.1f} sqm")
         
         return BlueprintProcessingResult(
@@ -1163,9 +1178,19 @@ async def convert_blueprint_to_3d(file: UploadFile = File(...)):
         try:
             model_3d_data = json.loads(base64.b64decode(default_result["model_3d_data"]).decode())
             obj_content = convert_to_obj_format(model_3d_data)
-            obj_path = os.path.join(MODELS_DIR, f"model_{blueprint_id}.obj")
-            with open(obj_path, 'w') as f:
+            
+            # Save to both locations
+            obj_path_backend = os.path.join(MODELS_DIR, f"model_{blueprint_id}.obj")
+            obj_path_public = os.path.join(PUBLIC_RENDERS_DIR, f"model_{blueprint_id}.obj")
+            
+            with open(obj_path_backend, 'w') as f:
                 f.write(obj_content)
+            
+            try:
+                with open(obj_path_public, 'w') as f:
+                    f.write(obj_content)
+            except:
+                pass
         except:
             pass
         
@@ -1463,3 +1488,56 @@ async def optimize_realtime_rendering(scene_data: Dict[str, Any]):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Real-time optimization failed: {str(e)}")
+
+def generate_3d_model(walls: List[Dict], rooms: List[Dict]) -> Dict:
+    """Generate 3D model data from walls and rooms"""
+    return {
+        "scene_id": str(uuid.uuid4()),
+        "walls": walls,
+        "rooms": rooms,
+        "materials": {
+            "wall_material": {"type": "drywall", "color": [0.9, 0.9, 0.9], "roughness": 0.5},
+            "floor_material": {"type": "hardwood", "color": [0.6, 0.4, 0.2], "roughness": 0.3}
+        },
+        "lighting": {
+            "ambient": {"intensity": 0.3, "color": [1.0, 1.0, 1.0]},
+            "directional": {"intensity": 1.0, "direction": [0.3, -1.0, 0.3]}
+        },
+        "camera": {
+            "position": [5, 3, 5],
+            "target": [0, 0, 0],
+            "fov": 45
+        }
+    }
+
+def create_default_building_layout() -> Dict:
+    """Create a default building layout when processing fails"""
+    return {
+        "success": True,
+        "dimensions": {"width": 10.0, "height": 8.0, "area": 80.0, "scale_factor": 1.0},
+        "rooms": [{
+            "id": "default_room",
+            "center_3d": [5.0, 1.35, 4.0],
+            "bounds": {"min_x": 0, "min_y": 0, "min_z": 0, "max_x": 10.0, "max_y": 2.7, "max_z": 8.0},
+            "area_sqm": 80.0,
+            "height": 2.7,
+            "confidence": 0.5,
+            "type": "living_room",
+            "dimensions": {"width": 10.0, "length": 8.0},
+            "features": ["default_layout"]
+        }],
+        "walls": [
+            {"id": "wall_0", "start_3d": [0, 0, 0], "end_3d": [10, 0, 0], "height": 2.7, "thickness": 0.15, "length_meters": 10.0, "confidence": 0.5, "material": "drywall", "type": "exterior"},
+            {"id": "wall_1", "start_3d": [10, 0, 0], "end_3d": [10, 0, 8], "height": 2.7, "thickness": 0.15, "length_meters": 8.0, "confidence": 0.5, "material": "drywall", "type": "exterior"},
+            {"id": "wall_2", "start_3d": [10, 0, 8], "end_3d": [0, 0, 8], "height": 2.7, "thickness": 0.15, "length_meters": 10.0, "confidence": 0.5, "material": "drywall", "type": "exterior"},
+            {"id": "wall_3", "start_3d": [0, 0, 8], "end_3d": [0, 0, 0], "height": 2.7, "thickness": 0.15, "length_meters": 8.0, "confidence": 0.5, "material": "drywall", "type": "exterior"}
+        ],
+        "model_3d_data": "eyJzY2VuZV9pZCI6ImRlZmF1bHQiLCJ3YWxscyI6W10sInJvb21zIjpbXX0=",  # Default base64 encoded JSON
+        "processing_time": 0.1,
+        "ai_models_used": ["fallback"],
+        "confidence_overall": 0.5
+    }
+
+def fallback_processing(image_bytes: bytes) -> Dict:
+    """Fallback processing when AI models are not available"""
+    return create_default_building_layout()

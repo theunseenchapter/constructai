@@ -1,0 +1,37 @@
+# ConstructAI Test 3D Model
+# Generated for download testing
+
+# Vertices for a simple cube
+v 0.0 0.0 0.0
+v 1.0 0.0 0.0
+v 1.0 1.0 0.0
+v 0.0 1.0 0.0
+v 0.0 0.0 1.0
+v 1.0 0.0 1.0
+v 1.0 1.0 1.0
+v 0.0 1.0 1.0
+
+# Faces (using 1-based indexing)
+# Bottom face
+f 1 2 3
+f 1 3 4
+
+# Top face
+f 5 7 6
+f 5 8 7
+
+# Front face
+f 1 5 6
+f 1 6 2
+
+# Back face
+f 3 7 8
+f 3 8 4
+
+# Left face
+f 1 4 8
+f 1 8 5
+
+# Right face
+f 2 6 7
+f 2 7 3

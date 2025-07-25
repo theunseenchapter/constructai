@@ -370,9 +370,8 @@ export default function Dashboard() {
       title: '2D → 3D Converter',
       description: 'Transform blueprints into 3D models',
       icon: Layers3,
-      action: handle2DTo3D,
-      requiresFile: true,
-      fileTypes: 'image/*'
+      action: () => window.location.href = '/convert',
+      requiresFile: false
     },
     {
       title: 'BOQ & Cost Estimator',
@@ -456,7 +455,14 @@ export default function Dashboard() {
             <Button 
               variant="outline" 
               size="lg" 
-              onClick={() => window.open('/api-test', '_blank')}
+              onClick={() => {
+                try {
+                  const fullUrl = new URL('/api-test', window.location.origin).href;
+                  window.open(fullUrl, '_blank');
+                } catch (error) {
+                  console.error('Failed to open demo page:', error);
+                }
+              }}
             >
               <Eye className="mr-2 h-5 w-5" />
               View Demo

@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Eye, RotateCcw, Camera, Loader2 } from 'lucide-react';
-import Image from 'next/image';
+import SafeImage from './SafeImage';
 
 // Interface definitions to match Enhanced3DBOQ requirements
 interface RoomData {
@@ -70,7 +70,7 @@ const BlenderRoomViewer: React.FC<BlenderRoomViewerProps> = ({
   const [mcpStatus, setMcpStatus] = useState<MCPServerStatus>({ connected: false });
 
   // MCP Server communication functions
-  const connectToMCP = async () => {
+  const connectToMCP = useCallback(async () => {
     try {
       setIsLoading(true);
       // Simulate MCP server connection
@@ -81,9 +81,9 @@ const BlenderRoomViewer: React.FC<BlenderRoomViewerProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const create3DScene = async () => {
+  const create3DScene = useCallback(async () => {
     if (!mcpStatus.connected) {
       await connectToMCP();
     }
@@ -99,7 +99,7 @@ const BlenderRoomViewer: React.FC<BlenderRoomViewerProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [mcpStatus.connected, rooms.length, connectToMCP]);
 
   const renderScene = async (type: 'single' | '360') => {
     if (!mcpStatus.connected) {
@@ -225,7 +225,7 @@ const BlenderRoomViewer: React.FC<BlenderRoomViewerProps> = ({
     if (rooms.length > 0 && !mcpStatus.connected) {
       create3DScene();
     }
-  }, [rooms, mcpStatus.connected]);
+  }, [rooms, mcpStatus.connected, create3DScene]);
 
   return (
     <div className={`blender-room-viewer ${className}`}>
@@ -276,7 +276,7 @@ const BlenderRoomViewer: React.FC<BlenderRoomViewerProps> = ({
           <div className="border rounded-lg p-4 mb-4 bg-gray-50">
             {selectedRender ? (
               <div className="text-center">
-                <Image
+                <SafeImage
                   src={selectedRender.url}
                   alt="Blender 3D Render"
                   width={800}
@@ -313,7 +313,7 @@ const BlenderRoomViewer: React.FC<BlenderRoomViewerProps> = ({
                     }`}
                     onClick={() => setSelectedRender(render)}
                   >
-                    <Image
+                    <SafeImage
                       src={render.url}
                       alt={`Render ${render.type}`}
                       width={100}

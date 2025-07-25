@@ -19,6 +19,7 @@
     "@radix-ui/react-tabs": "^1.1.12",
     "@radix-ui/react-toast": "^1.2.14",
     "@tanstack/react-query": "^5.81.5",
+    "@types/three": "^0.178.0",
     "autoprefixer": "^10.4.21",
     "axios": "^1.10.0",
     "class-variance-authority": "^0.7.1",
@@ -32,6 +33,7 @@
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
+    "three": "^0.178.0",
     "zustand": "^5.0.6"
   },
   "devDependencies": {

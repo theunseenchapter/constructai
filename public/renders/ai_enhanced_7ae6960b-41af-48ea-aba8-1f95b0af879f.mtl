@@ -1,0 +1,32 @@
+# AI-Enhanced Materials - Style: modern_minimalist
+newmtl glass_clear
+Kd 0.900 0.900 0.900
+Ks 1.000 1.000 1.000
+Ns 100
+d 0.050
+
+newmtl concrete
+Kd 0.600 0.600 0.600
+Ks 0.500 0.500 0.500
+Ns 50
+
+newmtl painted_white
+Kd 0.950 0.950 0.920
+Ks 0.600 0.600 0.600
+Ns 60
+
+newmtl carpet_plush
+Kd 0.500 0.400 0.300
+Ks 0.100 0.100 0.100
+Ns 10
+
+newmtl metal_brushed
+Kd 0.800 0.800 0.800
+Ks 0.700 0.700 0.700
+Ns 70
+
+newmtl marble_carrara
+Kd 0.950 0.950 0.920
+Ks 0.900 0.900 0.900
+Ns 90
+

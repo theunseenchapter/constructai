@@ -1,0 +1,221 @@
+{
+  "boq_id": "BOQ-1751790756906",
+  "project_specs": {
+    "total_area": 1200,
+    "num_bedrooms": 3,
+    "num_living_rooms": 1,
+    "num_kitchens": 1,
+    "num_bathrooms": 2,
+    "num_floors": 1,
+    "construction_type": "RCC",
+    "quality_grade": "standard",
+    "location": "Urban",
+    "room_height": 10,
+    "wall_thickness": 6,
+    "doors_per_bedroom": 1,
+    "doors_per_living_room": 2,
+    "doors_per_kitchen": 2,
+    "doors_per_bathroom": 1,
+    "windows_per_bedroom": 2,
+    "windows_per_living_room": 3,
+    "windows_per_kitchen": 2,
+    "windows_per_bathroom": 1,
+    "main_door_type": "solid_wood",
+    "interior_door_type": "flush",
+    "window_type": "sliding",
+    "room_layout": "traditional",
+    "include_balcony": false,
+    "balcony_area": 0,
+    "num_dining_rooms": 1,
+    "num_study_rooms": 0,
+    "num_utility_rooms": 1,
+    "architectural_style": "modern",
+    "quality_level": "premium",
+    "enhanced_features": [
+      "smart_home",
+      "energy_efficient"
+    ]
+  },
+  "total_cost": 240000,
+  "material_cost": 96000,
+  "labor_cost": 72000,
+  "items": [
+    {
+      "category": "Materials",
+      "item": "Cement",
+      "quantity": 24,
+      "unit": "bags",
+      "rate": 400,
+      "amount": 9600
+    },
+    {
+      "category": "Materials",
+      "item": "Steel",
+      "quantity": 60,
+      "unit": "kg",
+      "rate": 60,
+      "amount": 3600
+    },
+    {
+      "category": "Materials",
+      "item": "Bricks",
+      "quantity": 600,
+      "unit": "nos",
+      "rate": 8,
+      "amount": 4800
+    },
+    {
+      "category": "Labor",
+      "item": "Construction Labor",
+      "quantity": 120,
+      "unit": "days",
+      "rate": 500,
+      "amount": 60000
+    }
+  ],
+  "cost_breakdown": {
+    "material_cost": 96000,
+    "labor_cost": 72000,
+    "overhead_cost": 36000,
+    "total_cost": 240000,
+    "cost_per_sqft": 200
+  },
+  "room_3d_data": {
+    "room_layout": {},
+    "material_quantities": {},
+    "visualization_data": {
+      "rooms": [
+        {
+          "name": "Living Room 1",
+          "room_type": "living_room",
+          "width": 15.71168809699145,
+          "length": 15.71168809699145,
+          "height": 10,
+          "area": 246.85714285714283,
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "name": "Bedroom 1",
+          "room_type": "bedroom",
+          "width": 13.093073414159543,
+          "length": 13.093073414159543,
+          "height": 10,
+          "area": 171.42857142857142,
+          "position": {
+            "x": 15.71168809699145,
+            "y": 0
+          }
+        },
+        {
+          "name": "Bedroom 2",
+          "room_type": "bedroom",
+          "width": 13.093073414159543,
+          "length": 13.093073414159543,
+          "height": 10,
+          "area": 171.42857142857142,
+          "position": {
+            "x": 0,
+            "y": 13.093073414159543
+          }
+        },
+        {
+          "name": "Bedroom 3",
+          "room_type": "bedroom",
+          "width": 13.093073414159543,
+          "length": 13.093073414159543,
+          "height": 10,
+          "area": 171.42857142857142,
+          "position": {
+            "x": 13.093073414159543,
+            "y": 13.093073414159543
+          }
+        },
+        {
+          "name": "Kitchen 1",
+          "room_type": "kitchen",
+          "width": 10.474458731327635,
+          "length": 15.71168809699145,
+          "height": 10,
+          "area": 164.57142857142856,
+          "position": {
+            "x": 0,
+            "y": 26.186146828319085
+          }
+        },
+        {
+          "name": "Bathroom 1",
+          "room_type": "bathroom",
+          "width": 8,
+          "length": 8,
+          "height": 10,
+          "area": 64,
+          "position": {
+            "x": 10.474458731327635,
+            "y": 26.186146828319085
+          }
+        },
+        {
+          "name": "Bathroom 2",
+          "room_type": "bathroom",
+          "width": 8,
+          "length": 8,
+          "height": 10,
+          "area": 64,
+          "position": {
+            "x": 18.474458731327637,
+            "y": 26.186146828319085
+          }
+        },
+        {
+          "name": "Dining Room 1",
+          "room_type": "dining_room",
+          "width": 11.783766072743589,
+          "length": 11.783766072743589,
+          "height": 10,
+          "area": 138.85714285714286,
+          "position": {
+            "x": 0,
+            "y": 39.27922024247863
+          }
+        },
+        {
+          "name": "Utility Room 1",
+          "room_type": "utility_room",
+          "width": 11.783766072743589,
+          "length": 11.783766072743589,
+          "height": 10,
+          "area": 138.85714285714286,
+          "position": {
+            "x": 11.783766072743589,
+            "y": 39.27922024247863
+          }
+        }
+      ],
+      "building_dimensions": {
+        "total_width": 30,
+        "total_length": 51.06298631522222,
+        "height": 12
+      },
+      "total_doors": 11,
+      "total_windows": 15
+    }
+  },
+  "model_file_path": "model_1751790756906.obj",
+  "created_at": "2025-07-06T08:32:36.906Z",
+  "professional_3d": {
+    "scene_id": "23c8b169-3591-44ee-aad2-b2523bb5b22c",
+    "quality": "professional",
+    "renderer": "blender_cycles",
+    "samples": 512,
+    "resolution": "3840x2160",
+    "blender_files": {
+      "obj": "/renders/connected_floor_plan_23c8b169-3591-44ee-aad2-b2523bb5b22c.obj?v=1751790756981",
+      "mtl": "/renders/connected_floor_plan_23c8b169-3591-44ee-aad2-b2523bb5b22c.mtl?v=1751790756981",
+      "blend_file": "/renders/connected_floor_plan_23c8b169-3591-44ee-aad2-b2523bb5b22c.blend?v=1751790756981",
+      "renders": []
+    }
+  }
+}

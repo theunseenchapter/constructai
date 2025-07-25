@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Living Room NeRF - ConstructAI</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #64748b;
+            font-size: 16px;
+        }
+        
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: #3b82f6;
+            background: #f8fafc;
+        }
+        
+        .upload-area.dragover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        
+        #imageInput {
+            display: none;
+        }
+        
+        .upload-btn {
+            background: #3b82f6;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+        
+        .upload-btn:hover {
+            background: #2563eb;
+        }
+        
+        .preview {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .preview img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .process-btn {
+            background: #10b981;
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            margin: 20px 0;
+            transition: background 0.3s ease;
+        }
+        
+        .process-btn:hover {
+            background: #059669;
+        }
+        
+        .process-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .download-btn {
+            background: #7c3aed;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px 5px;
+            transition: background 0.3s ease;
+        }
+        
+        .download-btn:hover {
+            background: #6d28d9;
+        }
+        
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .error.show {
+            display: block;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e293b;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Living Room NeRF Test</h1>
+            <p>Upload your living room image to generate a 3D model using real NeRF processing</p>
+        </div>
+        
+        <div class="upload-area" onclick="document.getElementById('imageInput').click()">
+            <div>
+                <span style="font-size: 48px; color: #cbd5e1;">📸</span>
+                <h3>Click to upload your living room image</h3>
+                <p style="color: #64748b;">Supports JPG, PNG, and other image formats</p>
+                <button class="upload-btn" type="button">Choose Image</button>
+            </div>
+        </div>
+        
+        <input type="file" id="imageInput" accept="image/*" onchange="handleImageUpload(event)">
+        
+        <div class="preview" id="imagePreview"></div>
+        
+        <button class="process-btn" id="processBtn" onclick="processImage()" disabled>
+            🧠 Generate 3D Model with NeRF
+        </button>
+        
+        <div class="error" id="errorMsg"></div>
+        
+        <div class="loading" id="loadingMsg">
+            <div class="spinner"></div>
+            <h3>Processing your living room with NeRF AI...</h3>
+            <p>This may take a few moments as we analyze the image and generate 3D geometry</p>
+        </div>
+        
+        <div class="results" id="results">
+            <h3>✅ 3D Model Generated Successfully!</h3>
+            <div class="stats" id="modelStats"></div>
+            <div id="downloadLinks"></div>
+        </div>
+    </div>
+
+    <script>
+        let selectedImage = null;
+        
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            selectedImage = file;
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('imagePreview');
+                preview.innerHTML = `
+                    <img src="${e.target.result}" alt="Selected living room image">
+                    <p><strong>File:</strong> ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</p>
+                `;
+                
+                document.getElementById('processBtn').disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        async function processImage() {
+            if (!selectedImage) {
+                showError('Please select an image first');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loadingMsg').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('errorMsg').classList.remove('show');
+            document.getElementById('processBtn').disabled = true;
+            
+            try {
+                // Convert image to base64
+                const base64Image = await fileToBase64(selectedImage);
+                
+                // Prepare the request
+                const payload = {
+                    images: [base64Image],
+                    room_specifications: {
+                        room_type: 'living_room',
+                        dimensions: {
+                            width: 8,
+                            length: 10,
+                            height: 3
+                        }
+                    },
+                    rendering_options: {
+                        quality: 'high',
+                        output_format: 'obj',
+                        use_real_geometry: true
+                    }
+                };
+                
+                // Call the frontend API
+                const response = await fetch('/api/nerf/generate-3d', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                // Hide loading
+                document.getElementById('loadingMsg').classList.remove('show');
+                
+                // Show results
+                displayResults(result);
+                
+            } catch (error) {
+                console.error('Processing error:', error);
+                document.getElementById('loadingMsg').classList.remove('show');
+                showError(`Failed to process image: ${error.message}`);
+            } finally {
+                document.getElementById('processBtn').disabled = false;
+            }
+        }
+        
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+        
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            const statsDiv = document.getElementById('modelStats');
+            const downloadsDiv = document.getElementById('downloadLinks');
+            
+            // Display statistics - prioritize stats field, fallback to metadata
+            const stats = result.stats || {};
+            const metadata = result.metadata || {};
+            
+            statsDiv.innerHTML = `
+                <div class="stat">
+                    <div class="stat-value">${stats.vertex_count || 'N/A'}</div>
+                    <div class="stat-label">Vertices</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">${stats.face_count || 'N/A'}</div>
+                    <div class="stat-label">Faces</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">${stats.processing_time || metadata.training_time || 'N/A'}s</div>
+                    <div class="stat-label">Processing Time</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">${metadata.reconstruction_quality ? (metadata.reconstruction_quality * 100).toFixed(1) + '%' : '✅'}</div>
+                    <div class="stat-label">Quality Score</div>
+                </div>
+            `;
+            
+            // Display download links
+            const modelFiles = result.model_files || {};
+            let downloadHTML = '<h4>📁 Download Your 3D Model:</h4>';
+            
+            if (modelFiles.obj_file) {
+                downloadHTML += `<a href="/api/download/${modelFiles.obj_file}" class="download-btn" download>📦 Download OBJ File</a>`;
+            }
+            
+            if (modelFiles.ply_file) {
+                downloadHTML += `<a href="/api/download/${modelFiles.ply_file}" class="download-btn" download>🗿 Download PLY File</a>`;
+            }
+            
+            if (modelFiles.gltf_file) {
+                downloadHTML += `<a href="/api/download/${modelFiles.gltf_file}" class="download-btn" download>🎮 Download GLTF File</a>`;
+            }
+            
+            if (modelFiles.texture_files && modelFiles.texture_files.length > 0) {
+                modelFiles.texture_files.forEach((texture, index) => {
+                    downloadHTML += `<a href="/api/download/${texture}" class="download-btn" download>🎨 Texture ${index + 1}</a>`;
+                });
+            }
+            
+            if (!modelFiles.obj_file && !modelFiles.ply_file && !modelFiles.gltf_file) {
+                downloadHTML += '<p style="color: #dc2626;">❌ No 3D model files were generated</p>';
+            }
+            
+            // Add debug info if available
+            if (result.nerf_id) {
+                downloadHTML += `<p style="margin-top: 20px; font-size: 12px; color: #64748b;">Model ID: ${result.nerf_id}</p>`;
+            }
+            
+            downloadsDiv.innerHTML = downloadHTML;
+            
+            // Show results
+            resultsDiv.classList.add('show');
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMsg');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+        
+        // Drag and drop support
+        const uploadArea = document.querySelector('.upload-area');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('imageInput').files = files;
+                handleImageUpload({ target: { files } });
+            }
+        });
+    </script>
+</body>
+</html>

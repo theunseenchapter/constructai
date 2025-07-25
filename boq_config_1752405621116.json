@@ -1,0 +1,62 @@
+{
+  "house": {
+    "rooms": [
+      {
+        "name": "Bedroom 1",
+        "type": "bedroom",
+        "dimensions": [
+          48.98979485566356,
+          53.88877434122992,
+          2.5
+        ],
+        "location": [
+          0,
+          54.88877434122992,
+          0
+        ]
+      },
+      {
+        "name": "Living Room 1",
+        "type": "living_room",
+        "dimensions": [
+          63.49803146555017,
+          63.49803146555017,
+          2.5
+        ],
+        "location": [
+          0,
+          119.38680580678009,
+          0
+        ]
+      },
+      {
+        "name": "Kitchen 1",
+        "type": "kitchen",
+        "dimensions": [
+          32,
+          48,
+          2.5
+        ],
+        "location": [
+          0,
+          168.3868058067801,
+          0
+        ]
+      },
+      {
+        "name": "Bathroom 1",
+        "type": "bathroom",
+        "dimensions": [
+          4,
+          4,
+          2.5
+        ],
+        "location": [
+          0,
+          173.3868058067801,
+          0
+        ]
+      }
+    ]
+  }
+}
